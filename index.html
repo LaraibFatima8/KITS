@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STEM Kits Learning Portal</title>
+  <meta name="description" content="Catalog of STEM kits with manuals, guides, FAQs, and resources." />
+  <style>
+    /* ===========================
+       CSS RESET + BASE STYLES
+       =========================== */
+    *, *::before, *::after { box-sizing: border-box; }
+    * { margin: 0; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: var(--bg);
+      color: var(--text);
+      transition: background .3s ease, color .3s ease;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
+    :root {
+      --bg: #0b1220;
+      --surface: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #8b5cf6; /* violet */
+      --accent-2: #22d3ee; /* cyan */
+      --card: #0f172a;
+      --card-border: #1f2937;
+      --ring: #22d3ee55;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+
+    /* Theme palettes */
+    .theme-ocean { --accent: #22d3ee; --accent-2: #3b82f6; }
+    .theme-sunset { --accent: #f97316; --accent-2: #ef4444; }
+    .theme-forest { --accent: #34d399; --accent-2: #059669; }
+    .theme-neon { --accent: #a78bfa; --accent-2: #22d3ee; }
+    .theme-rose  { --accent: #fb7185; --accent-2: #f472b6; }
+    .theme-mono-dark { --accent: #9ca3af; --accent-2: #6b7280; }
+
+    /* Animation Keyframes */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+      100% { transform: translateY(0px); }
+    }
+
+    /* Robot Arm Animations */
+    @keyframes armMove {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(30deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    @keyframes gripperWork {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(0.8); }
+    }
+
+    /* Car Animations */
+    @keyframes carBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    @keyframes wheelSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes sensorBlink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    /* Circuit Animations */
+    @keyframes circuitPulse {
+      0% { stroke-dashoffset: 1000; }
+      100% { stroke-dashoffset: 0; }
+    }
+
+    @keyframes nodePulse {
+      0%, 100% { transform: scale(1); fill-opacity: 0.5; }
+      50% { transform: scale(1.5); fill-opacity: 1; }
+    }
+
+    /* Gesture Wave Animations */
+    @keyframes waveFlow {
+      0% { stroke-dashoffset: 100; }
+      100% { stroke-dashoffset: -100; }
+    }
+
+    /* OLED Display Animations */
+    @keyframes pixelScan {
+      0% { transform: scaleY(0); }
+      100% { transform: scaleY(1); }
+    }
+
+    @keyframes textScroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    @keyframes displayGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.3); }
+    }
+
+    /* Ultrasonic Sensor Animations */
+    @keyframes sonarWave {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+
+    @keyframes sensorRotate {
+      0% { transform: rotate(-30deg); }
+      100% { transform: rotate(30deg); }
+    }
+
+    /* Servo Motor Animation */
+    @keyframes servoRotate {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(180deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* LED Matrix Animation */
+    @keyframes ledBlink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    /* Animated Elements Styles */
+    .robo-arm {
+      position: absolute;
+      top: 20%;
+      right: 5%;
+      z-index: 1;
+    }
+
+    .robo-arm .arm-segment {
+      transform-origin: 50px 80px;
+      animation: armMove 4s ease-in-out infinite;
+    }
+
+    .robo-arm .gripper {
+      animation: gripperWork 4s ease-in-out infinite;
+    }
+
+    .robo-arm .joint {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .smart-car {
+      position: absolute;
+      bottom: 10%;
+      left: 5%;
+      z-index: 1;
+      animation: carBounce 3s ease-in-out infinite;
+    }
+
+    .smart-car .wheel {
+      transform-origin: center;
+      animation: wheelSpin 2s linear infinite;
+    }
+
+    .smart-car .sensor-blink {
+      animation: sensorBlink 1s ease-in-out infinite;
+    }
+
+    .pcb-pattern {
+      position: absolute;
+      top: 15%;
+      left: 10%;
+      opacity: 0.5;
+      z-index: 1;
+    }
+
+    .pcb-pattern .circuit-line {
+      stroke-dasharray: 1000;
+      animation: circuitPulse 20s linear infinite;
+    }
+
+    .pcb-pattern .circuit-node {
+      animation: nodePulse 2s ease-in-out infinite;
+    }
+
+    .gesture-waves {
+      position: absolute;
+      bottom: 20%;
+      right: 15%;
+      z-index: 1;
+    }
+
+    .gesture-waves .wave {
+      stroke-dasharray: 100;
+      animation: waveFlow 3s linear infinite;
+    }
+
+    /* OLED Display Styles */
+    .oled-display {
+      position: absolute;
+      right: 5%;
+      top: 20px;
+      z-index: 1;
+    }
+
+    .oled-display .screen {
+      animation: displayGlow 2s ease-in-out infinite;
+    }
+
+    .oled-display .display-text {
+      animation: textScroll 10s linear infinite;
+    }
+
+    .pixel-grid rect {
+      animation: pixelScan 1s ease-out infinite;
+    }
+
+    /* Ultrasonic Sensor Styles */
+    .ultrasonic-sensor {
+      position: absolute;
+      left: 5%;
+      top: 30px;
+      z-index: 1;
+    }
+
+    .ultrasonic-sensor .sensor-body {
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .ultrasonic-sensor .sonar-wave {
+      animation: sonarWave 2s ease-out infinite;
+    }
+
+    .ultrasonic-sensor .transmitter,
+    .ultrasonic-sensor .receiver {
+      animation: sensorRotate 4s ease-in-out infinite alternate;
+      transform-origin: center;
+    }
+
+    /* Servo Motor Styles */
+    .servo-motor {
+      position: absolute;
+      left: 50%;
+      top: 40px;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
+
+    .servo-motor .motor-arm {
+      transform-origin: bottom center;
+      animation: servoRotate 4s ease-in-out infinite;
+    }
+
+    /* LED Matrix */
+    .led-matrix {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 2px;
+      position: absolute;
+      right: 10%;
+      top: 40px;
+    }
+
+    .led {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: ledBlink 1s ease-in-out infinite;
+    }
+
+    /* Add hover interactions */
+    .robo-arm:hover .arm-segment {
+      animation-duration: 2s;
+    }
+
+    .smart-car:hover {
+      transform: scale(1.1);
+    }
+
+    .pcb-pattern:hover {
+      opacity: 0.8;
+    }
+
+    .gesture-waves:hover .wave {
+      animation-duration: 1.5s;
+    }
+
+    .oled-display:hover .screen {
+      animation-duration: 1s;
+    }
+
+    .ultrasonic-sensor:hover .sonar-wave {
+      animation-duration: 1s;
+    }
+
+    .servo-motor:hover .motor-arm {
+      animation-duration: 2s;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.2); }
+      50% { box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.4); }
+      100% { box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.2); }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(-30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Light mode override */
+    .light {
+      --bg: #f7f8fb;
+      --surface: #ffffff;
+      --text: #0b1220;
+      --muted: #475569;
+      --card: #ffffff;
+      --card-border: #e5e7eb;
+      --shadow: 0 15px 35px rgba(2, 6, 23, .08);
+    }
+
+    /* ===========================
+       UTILITIES
+       =========================== */
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .pill { display:inline-flex; align-items:center; gap:.5rem; background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:#fff; padding:.35rem .75rem; border-radius:999px; font-weight:600; box-shadow: var(--shadow); }
+    .muted { color: var(--muted); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+    /* ===========================
+       NAVBAR
+       =========================== */
+    .nav {
+      position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px);
+      background: color-mix(in oklab, var(--bg), transparent 35%);
+      border-bottom: 1px solid var(--card-border);
+    }
+    .nav-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; height:64px; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.3px; }
+    .brand-logo { width:36px; height:36px; border-radius:10px; background: linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow: var(--shadow); }
+    .nav-links { display:flex; gap:16px; flex-wrap:wrap; }
+    .nav-links a { padding:8px 12px; border-radius:10px; color: var(--muted); }
+    .nav-links a:hover { background: color-mix(in oklab, var(--accent) 15%, transparent); color:#fff; }
+    .controls { display:flex; gap:10px; align-items:center; }
+    .icon-btn {
+      border:1px solid var(--card-border); background: var(--surface); color:var(--text);
+      height:38px; width:38px; display:grid; place-items:center; border-radius:12px; box-shadow: var(--shadow);
+    }
+    .icon-btn:focus { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+    /* ===========================
+       HERO SECTION
+       =========================== */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 64px 0 40px;
+      background:
+        radial-gradient(1200px 600px at 10% -20%, color-mix(in oklab, var(--accent) 25%, transparent), transparent),
+        radial-gradient(1200px 600px at 110% 120%, color-mix(in oklab, var(--accent-2) 25%, transparent), transparent);
+      border-bottom: 1px solid var(--card-border);
+      animation: gradientShift 15s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    .blob { position:absolute; filter: blur(40px); opacity:.35; animation: drift 12s infinite ease-in-out; pointer-events:none; }
+    .blob.b1 { width:420px; height:420px; background: var(--accent); top:-100px; left:-120px; border-radius:40% 60% 60% 40%/60% 40% 60% 40%; }
+    .blob.b2 { width:360px; height:360px; background: var(--accent-2); bottom:-120px; right:-140px; border-radius:60% 40% 40% 60%/40% 60% 40% 60%; animation-delay: -4s; }
+    @keyframes drift { 0%{ transform: translateY(0) rotate(0deg);} 50%{ transform: translateY(-20px) rotate(15deg);} 100%{ transform: translateY(0) rotate(0deg);} }
+
+    .hero-grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:28px; align-items:center; }
+    @media (max-width: 900px){ .hero-grid { grid-template-columns: 1fr; } }
+
+    .hero h1 { font-size: clamp(1.9rem, 2.5vw + 1rem, 3.2rem); letter-spacing:.2px; }
+    .lead { color: var(--muted); margin-top: 10px; }
+
+    .search-wrap { margin-top: 18px; display:flex; gap:12px; flex-wrap: wrap; }
+    .search { flex: 1 1 320px; display:flex; align-items:center; gap:10px; padding: 12px 14px; background: var(--surface); border:1px solid var(--card-border); border-radius: 14px; box-shadow: var(--shadow); }
+    .search input { all: unset; width:100%; color:var(--text); }
+    .search input::placeholder{ color: color-mix(in oklab, var(--muted), white 10%); }
+    .filter-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+    .chip { 
+      border: 1px solid var(--card-border); 
+      background: var(--card); 
+      padding: 6px 10px; 
+      border-radius: 999px; 
+      color: var(--muted); 
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .chip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      color: var(--text);
+    }
+    .chip.active { 
+      background: linear-gradient(90deg,var(--accent),var(--accent-2)); 
+      border-color: transparent; 
+      color: #fff; 
+      box-shadow: var(--shadow);
+      animation: pulse 2s infinite;
+    }
+    .chip::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.3s ease, height 0.3s ease;
+      opacity: 0;
+    }
+    .chip:hover::before {
+      width: 200%;
+      height: 200%;
+      opacity: 0.1;
+    }
+
+    .hero-card {
+      background: linear-gradient(180deg, color-mix(in oklab, var(--surface), black 6%), var(--surface));
+      border:1px solid var(--card-border); border-radius: var(--radius); padding:18px; box-shadow: var(--shadow);
+    }
+    .stats { display:grid; grid-template-columns: repeat(3,1fr); gap:14px; margin-top: 12px; }
+    .stat { 
+      background: var(--card); 
+      border: 1px solid var(--card-border); 
+      border-radius: 14px; 
+      padding: 12px; 
+      text-align: center;
+      transition: all 0.3s ease;
+      animation: float 6s ease-in-out infinite;
+    }
+    .stat:nth-child(2) {
+      animation-delay: -2s;
+    }
+    .stat:nth-child(3) {
+      animation-delay: -4s;
+    }
+    .stat:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .stat strong { 
+      display: block; 
+      font-size: 1.4rem;
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: pulse 2s infinite;
+    }
+
+    /* ===========================
+       SECTIONS HEADERS
+       =========================== */
+    .section { padding: 44px 0; }
+    .section h2 { font-size: clamp(1.4rem, 1.2vw + 1rem, 2rem); margin-bottom: 6px; }
+    .section .sub { color: var(--muted); margin-bottom: 20px; }
+
+    /* ===========================
+       KITS GRID
+       =========================== */
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    .col-4 { grid-column: span 4; }
+    @media (max-width: 1000px){ .col-4 { grid-column: span 6; } }
+    @media (max-width: 640px){ .col-4 { grid-column: span 12; } }
+
+    .card { 
+      position: relative; 
+      background: var(--card); 
+      border: 1px solid var(--card-border); 
+      border-radius: var(--radius); 
+      overflow: hidden; 
+      box-shadow: var(--shadow); 
+      transform: translateZ(0); 
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: scaleIn 0.5s ease-out;
+    }
+    .card:hover { 
+      transform: translateY(-10px) scale(1.02); 
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    }
+    .card-media { 
+      height: 180px; 
+      background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 20%, black), color-mix(in oklab, var(--accent-2) 20%, black)); 
+      display: grid; 
+      place-items: center; 
+      position: relative;
+      overflow: hidden;
+    }
+    .card-media::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transform: skewX(-25deg);
+      transition: 0.75s;
+    }
+    .card:hover .card-media::after {
+      left: 150%;
+    }
+    .card-media img { 
+      height: 100%; 
+      width: 100%; 
+      object-fit: contain; 
+      mix-blend-mode: screen; 
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.5));
+      transition: transform 0.3s ease-in-out;
+    }
+    .card:hover .card-media img {
+      transform: scale(1.1) rotate(2deg);
+    }
+    .card-body { padding: 14px; }
+    .card-title { font-weight: 800; letter-spacing:.2px; }
+    .card-tags { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 6px; }
+    .tag { font-size:.78rem; color:var(--muted); border:1px dashed var(--card-border); padding:4px 8px; border-radius:999px; }
+    .card-actions { display:flex; gap:10px; }
+    .btn { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      padding: 10px 12px; 
+      border-radius: 12px; 
+      border: 1px solid var(--card-border); 
+      background: var(--surface); 
+      color: var(--text); 
+      box-shadow: var(--shadow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .btn:active {
+      transform: translateY(1px);
+    }
+    .btn.primary { 
+      background: linear-gradient(90deg,var(--accent),var(--accent-2)); 
+      border-color: transparent; 
+      color: #fff;
+    }
+    .btn.primary:hover {
+      background: linear-gradient(90deg,var(--accent-2),var(--accent));
+    }
+    .btn.primary::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+      transform: scale(0);
+      opacity: 0;
+      transition: transform 0.6s, opacity 0.6s;
+    }
+    .btn.primary:hover::after {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .btn.ghost { 
+      background: transparent;
+      border: 1px solid var(--accent);
+      position: relative;
+      z-index: 1;
+    }
+    .btn.ghost::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      transition: width 0.3s ease;
+      z-index: -1;
+    }
+    .btn.ghost:hover {
+      color: #fff;
+      border-color: transparent;
+    }
+    .btn.ghost:hover::before {
+      width: 100%;
+    }
+    .btn:focus { 
+      outline: 2px solid var(--ring); 
+      outline-offset: 2px; 
+    }
+
+    /* Tilt hover */
+    .tilt:hover { transform: perspective(800px) rotateX(2deg) rotateY(-2deg) translateY(-6px); }
+
+    /* ===========================
+       HOW-IT-WORKS, FEATURES
+       =========================== */
+    .steps { display:grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    @media (max-width: 900px){ .steps { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 560px){ .steps { grid-template-columns: 1fr; } }
+    .step { background: var(--card); border:1px solid var(--card-border); border-radius: 14px; padding:14px; }
+    .step .num { font-weight:900; background: linear-gradient(90deg,var(--accent),var(--accent-2)); -webkit-background-clip: text; background-clip:text; color: transparent; font-size: 2rem; }
+
+    .features { display:grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    @media (max-width: 900px){ .features { grid-template-columns: 1fr; } }
+    .feature { display:flex; gap:12px; background: var(--card); border:1px solid var(--card-border); border-radius: 14px; padding:14px; align-items:flex-start; }
+    .feature .dot { width:14px; height:14px; border-radius:50%; background: linear-gradient(90deg,var(--accent),var(--accent-2)); box-shadow: var(--shadow); margin-top: 6px; }
+
+    /* ===========================
+       FAQ
+       =========================== */
+    .faq { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px){ .faq { grid-template-columns: 1fr; } }
+    .qa { background: var(--card); border:1px solid var(--card-border); border-radius: 14px; padding: 14px; }
+    .qa summary { font-weight:700; cursor:pointer; list-style:none; }
+    .qa summary::-webkit-details-marker { display:none; }
+    .qa[open] { outline: 2px solid var(--ring); }
+
+    /* ===========================
+       MODAL
+       =========================== */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; }
+    .modal.open { display:flex; }
+    .modal-card { width: min(760px, 96vw); background: var(--surface); border:1px solid var(--card-border); border-radius: 16px; box-shadow: var(--shadow); overflow:hidden; }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid var(--card-border); }
+    .modal-body { padding:16px; display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    .modal-actions { display:flex; gap:10px; padding:14px 16px; border-top:1px solid var(--card-border); background: var(--card); }
+    @media (max-width: 720px){ .modal-body { grid-template-columns: 1fr; } }
+
+    /* ===========================
+       CONTACT
+       =========================== */
+    .contact { display:grid; grid-template-columns: 1.2fr .8fr; gap:16px; }
+    @media (max-width: 900px){ .contact { grid-template-columns: 1fr; } }
+    .input { width: 100%; padding: 12px 12px; border-radius: 12px; border:1px solid var(--card-border); background: var(--surface); color: var(--text); }
+
+    /* ===========================
+       FOOTER
+       =========================== */
+    footer { border-top:1px solid var(--card-border); padding:20px 0 40px; color: var(--muted); }
+    .foot { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+
+    /* Back-to-top */
+    .to-top { position: fixed; right: 18px; bottom: 18px; height:46px; width:46px; border-radius: 12px; display:grid; place-items:center; background: linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; box-shadow: var(--shadow); border:0; opacity:0; pointer-events:none; transform: translateY(10px); transition: .25s ease; }
+    .to-top.show { opacity:1; pointer-events:auto; transform: translateY(0); }
+
+    /* Motion Sensor Styles */
+    .motion-sensor {
+      position: absolute;
+      right: 10%;
+      top: 60px;
+      z-index: 1;
+    }
+
+    .motion-sensor .sensor-range {
+      animation: sensorPulse 3s ease-out infinite;
+      opacity: 0;
+    }
+
+    .motion-sensor .sensor-range:nth-child(2) {
+      animation-delay: -1s;
+    }
+
+    .motion-sensor .sensor-range:nth-child(3) {
+      animation-delay: -2s;
+    }
+
+    .motion-sensor .sensor-dot {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes sensorPulse {
+      0% { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(1.2); opacity: 0; }
+    }
+
+    /* Digital Display Styles */
+    .digital-display {
+      position: absolute;
+      left: 10%;
+      top: 80px;
+      z-index: 1;
+    }
+
+    .digital-display .display-value {
+      font-family: monospace;
+      font-size: 14px;
+      animation: textBlink 2s ease-in-out infinite;
+    }
+
+    @keyframes textBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Interactive Circuit Styles */
+    .interactive-circuit {
+      position: absolute;
+      left: 5%;
+      top: 30px;
+      z-index: 1;
+    }
+
+    .interactive-circuit .resistor {
+      animation: componentPulse 3s ease-in-out infinite;
+    }
+
+    .interactive-circuit .led-component {
+      animation: ledGlow 2s ease-in-out infinite;
+    }
+
+    .interactive-circuit .connection-line {
+      stroke-dasharray: 10;
+      animation: lineFlow 20s linear infinite;
+    }
+
+    @keyframes componentPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    @keyframes ledGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.5) drop-shadow(0 0 5px var(--accent-2)); }
+    }
+
+    @keyframes lineFlow {
+      from { stroke-dashoffset: 1000; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Microcontroller Styles */
+    .microcontroller {
+      position: absolute;
+      right: 5%;
+      top: 40px;
+      z-index: 1;
+    }
+
+    .microcontroller .processing-ring {
+      animation: processSpin 4s linear infinite;
+    }
+
+    .microcontroller .pins-left rect,
+    .microcontroller .pins-right rect {
+      animation: pinPulse 1s ease-in-out infinite;
+      animation-delay: var(--delay);
+    }
+
+    @keyframes processSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pinPulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* Nice focus outline */
+    :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 10px; }
+  </style>
+</head>
+
+<body class="theme-neon dark">
+  <!-- =========================== NAVBAR =========================== -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#home" aria-label="Go to top">
+        <span class="brand-logo"></span>
+        <span>STEM Kits</span>
+      </a>
+      <div class="nav-links">
+        <a href="#kits">Kits</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a href="#resources">Resources</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="controls">
+        <button class="icon-btn" id="themeBtn" title="Toggle light/dark" aria-label="Toggle light or dark theme">🌗</button>
+        <button class="icon-btn" id="paletteBtn" title="Cycle color theme" aria-label="Change color theme">🎨</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =========================== HERO =========================== -->
+  <header id="home" class="hero">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <!-- Animated Robot Arm -->
+    <div class="robo-arm">
+      <svg viewBox="0 0 100 100" width="120" height="120">
+        <g class="arm-base">
+          <rect x="45" y="80" width="10" height="20" fill="var(--accent)" />
+          <circle cx="50" cy="80" r="8" fill="var(--accent-2)" class="joint" />
+        </g>
+        <g class="arm-segment">
+          <line x1="50" y1="80" x2="50" y2="50" stroke="var(--accent)" stroke-width="6" />
+          <circle cx="50" cy="50" r="6" fill="var(--accent-2)" class="joint" />
+        </g>
+        <g class="forearm">
+          <line x1="50" y1="50" x2="70" y2="30" stroke="var(--accent)" stroke-width="4" />
+          <circle cx="70" cy="30" r="4" fill="var(--accent-2)" class="joint" />
+        </g>
+        <g class="gripper">
+          <path d="M65 30 L75 30 L80 25" stroke="var(--accent-2)" stroke-width="3" fill="none" />
+          <path d="M65 30 L75 30 L80 35" stroke="var(--accent-2)" stroke-width="3" fill="none" />
+        </g>
+      </svg>
+    </div>
+    <!-- Animated Car -->
+    <div class="smart-car">
+      <svg viewBox="0 0 120 60" width="100" height="50">
+        <g class="car-body">
+          <rect x="20" y="30" width="80" height="20" rx="5" fill="var(--accent)" />
+          <path d="M30 30 L40 15 L80 15 L90 30" fill="var(--accent)" />
+          <rect x="45" y="20" width="30" height="12" rx="2" fill="var(--accent-2)" class="windshield" />
+        </g>
+        <g class="wheels">
+          <circle cx="35" cy="50" r="8" fill="var(--accent-2)" class="wheel" />
+          <circle cx="85" cy="50" r="8" fill="var(--accent-2)" class="wheel" />
+          <circle cx="35" cy="50" r="3" fill="var(--card)" />
+          <circle cx="85" cy="50" r="3" fill="var(--card)" />
+        </g>
+        <g class="sensors">
+          <circle cx="100" cy="35" r="2" fill="var(--accent-2)" class="sensor-blink" />
+          <circle cx="20" cy="35" r="2" fill="var(--accent-2)" class="sensor-blink" />
+        </g>
+      </svg>
+    </div>
+    <!-- PCB Circuit Pattern -->
+    <div class="pcb-pattern">
+      <svg viewBox="0 0 100 100" width="150" height="150">
+        <g class="circuit-paths">
+          <path d="M10 10 H90 V90 H10 Z" fill="none" stroke="var(--accent)" stroke-width="1" class="circuit-line" />
+          <path d="M20 20 H80 V80 H20 Z" fill="none" stroke="var(--accent-2)" stroke-width="1" class="circuit-line" />
+          <circle cx="10" cy="10" r="3" fill="var(--accent-2)" class="circuit-node" />
+          <circle cx="90" cy="10" r="3" fill="var(--accent-2)" class="circuit-node" />
+          <circle cx="10" cy="90" r="3" fill="var(--accent-2)" class="circuit-node" />
+          <circle cx="90" cy="90" r="3" fill="var(--accent-2)" class="circuit-node" />
+          <path d="M10 50 H90" stroke="var(--accent)" stroke-width="1" class="circuit-line" />
+          <path d="M50 10 V90" stroke="var(--accent-2)" stroke-width="1" class="circuit-line" />
+        </g>
+      </svg>
+    </div>
+    <!-- Gesture Sensor Waves -->
+    <div class="gesture-waves">
+      <svg viewBox="0 0 100 50" width="80" height="40">
+        <g class="waves">
+          <path d="M10 25 Q25 10 50 25 Q75 40 90 25" fill="none" stroke="var(--accent)" stroke-width="2" class="wave" />
+          <path d="M10 25 Q25 40 50 25 Q75 10 90 25" fill="none" stroke="var(--accent-2)" stroke-width="2" class="wave" />
+        </g>
+      </svg>
+    </div>
+    <div class="container hero-grid">
+      <div>
+        <span class="pill">Learn • Build • Play</span>
+        <h1>All your <span style="background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent;">STEM Kits</span> in one portal</h1>
+        <p class="lead">Click a kit to open its manual, watch build steps, and explore bonus experiments. Public link—just add it as a QR on the box!</p>
+
+        <div class="search-wrap" aria-label="Search and filters">
+          <label class="search" aria-label="Search kits">
+            🔎
+            <input id="searchInput" type="search" placeholder="Search kits: car, solar, sensor, Arduino…" />
+          </label>
+          <div class="filter-chips" id="chips">
+            <button class="chip active" data-filter="all">All</button>
+            <button class="chip" data-filter="beginner">Beginner</button>
+            <button class="chip" data-filter="intermediate">Intermediate</button>
+            <button class="chip" data-filter="advanced">Advanced</button>
+            <button class="chip" data-filter="electronics">Electronics</button>
+            <button class="chip" data-filter="robotics">Robotics</button>
+            <button class="chip" data-filter="automation">Automation</button>
+            <button class="chip" data-filter="sensors">Sensors</button>
+            <button class="chip" data-filter="coding">Coding</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="stats">
+          <div class="stat"><strong id="statKits">12</strong><span class="muted">Kits</span></div>
+          <div class="stat"><strong>∞</strong><span class="muted">Ideas</span></div>
+          <div class="stat"><strong>QR</strong><span class="muted">ready</span></div>
+        </div>
+        <div style="margin-top:14px" class="muted">Tip: Put a single QR code on your kit that links to this page. We keep manuals lightweight and mobile friendly.</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================== KITS =========================== -->
+  <section id="kits" class="section">
+    <div class="container">
+      <!-- LED Matrix Display -->
+      <div class="led-matrix">
+        <script>
+          // Create LED matrix dynamically
+          document.addEventListener('DOMContentLoaded', () => {
+            const matrix = document.querySelector('.led-matrix');
+            for(let i = 0; i < 64; i++) {
+              const led = document.createElement('div');
+              led.className = 'led';
+              led.style.animationDelay = `${Math.random() * 2}s`;
+              matrix.appendChild(led);
+            }
+          });
+        </script>
+      </div>
+
+      <!-- Motion Sensor -->
+      <div class="motion-sensor">
+        <svg viewBox="0 0 80 80" width="80" height="80">
+          <circle cx="40" cy="40" r="35" fill="none" stroke="var(--accent)" stroke-width="2" class="sensor-range" />
+          <circle cx="40" cy="40" r="25" fill="none" stroke="var(--accent)" stroke-width="2" class="sensor-range" />
+          <circle cx="40" cy="40" r="15" fill="none" stroke="var(--accent)" stroke-width="2" class="sensor-range" />
+          <circle cx="40" cy="40" r="5" fill="var(--accent-2)" class="sensor-dot" />
+        </svg>
+      </div>
+
+      <!-- Digital Display -->
+      <div class="digital-display">
+        <svg viewBox="0 0 200 60" width="200" height="60">
+          <rect x="10" y="10" width="180" height="40" rx="5" fill="var(--card)" />
+          <text x="100" y="35" fill="var(--accent)" text-anchor="middle" class="display-value">STEM KITS</text>
+        </svg>
+      </div>
+
+      <h2>Browse Kits</h2>
+      <p class="sub">Click a kit card to preview, then open the PDF manual or watch assembly steps.</p>
+
+      <div class="grid" id="grid">
+        <!-- Cards injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== HOW IT WORKS =========================== -->
+  <section id="how" class="section" style="border-top:1px solid var(--card-border)">
+    <div class="container">
+      <!-- Animated OLED Display -->
+      <div class="oled-display">
+        <svg viewBox="0 0 120 60" width="120" height="60">
+          <rect x="10" y="5" width="100" height="50" rx="2" fill="var(--card)" class="display-body" />
+          <rect x="15" y="10" width="90" height="40" fill="var(--accent-2)" class="screen" />
+          <!-- Scrolling Text -->
+          <text x="60" y="35" fill="var(--card)" class="display-text" text-anchor="middle">STEM KITS</text>
+          <!-- Pixel Grid -->
+          <g class="pixel-grid"></g>
+        </svg>
+      </div>
+
+      <!-- Ultrasonic Sensor -->
+      <div class="ultrasonic-sensor">
+        <svg viewBox="0 0 100 50" width="100" height="50">
+          <rect x="20" y="10" width="60" height="30" rx="5" fill="var(--accent)" class="sensor-body" />
+          <!-- Transmitter -->
+          <circle cx="35" cy="25" r="8" fill="var(--accent-2)" class="transmitter" />
+          <!-- Receiver -->
+          <circle cx="65" cy="25" r="8" fill="var(--accent-2)" class="receiver" />
+          <!-- Sonar Waves -->
+          <circle cx="35" cy="25" r="5" fill="none" stroke="var(--accent-2)" class="sonar-wave" />
+          <circle cx="35" cy="25" r="5" fill="none" stroke="var(--accent-2)" class="sonar-wave" style="animation-delay: -1s" />
+          <circle cx="35" cy="25" r="5" fill="none" stroke="var(--accent-2)" class="sonar-wave" style="animation-delay: -2s" />
+        </svg>
+      </div>
+
+      <!-- Servo Motor -->
+      <div class="servo-motor">
+        <svg viewBox="0 0 60 60" width="60" height="60">
+          <rect x="10" y="10" width="40" height="40" fill="var(--accent)" class="motor-body" />
+          <circle cx="30" cy="30" r="15" fill="var(--accent-2)" class="motor-hub" />
+          <rect x="28" y="15" width="4" height="15" fill="var(--card)" class="motor-arm" />
+        </svg>
+      </div>
+
+      <h2>How it works</h2>
+      <p class="sub">Three simple steps from box to build.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="num">01</div>
+          <h3>Scan the QR</h3>
+          <p class="muted">Each box has a QR that opens this portal. No logins, no apps—just the manuals.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3>Pick your kit</h3>
+          <p class="muted">Use search & filters to find your exact kit version. Click to open the quick preview.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3>Build & explore</h3>
+          <p class="muted">Follow the PDF or watch the step list. Try the bonus extensions at the end!</p>
+        </div>
+        <div class="step">
+          <div class="num">04</div>
+          <h3>Share progress</h3>
+          <p class="muted">Teachers can print the checklist. Students can submit photos or timings via the contact form.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== FEATURES =========================== -->
+  <section class="section" id="resources" style="border-top:1px solid var(--card-border)">
+    <div class="container">
+      <!-- Interactive Circuit Board -->
+      <div class="interactive-circuit">
+        <svg viewBox="0 0 200 100" width="200" height="100">
+          <g class="circuit-components">
+            <!-- Resistors -->
+            <rect x="20" y="40" width="30" height="10" fill="var(--accent)" class="resistor" />
+            <rect x="80" y="40" width="30" height="10" fill="var(--accent)" class="resistor" />
+            <!-- LEDs -->
+            <circle cx="140" cy="45" r="8" fill="var(--accent-2)" class="led-component" />
+            <circle cx="170" cy="45" r="8" fill="var(--accent-2)" class="led-component" />
+            <!-- Connection Lines -->
+            <path d="M10 45 H190" stroke="var(--accent)" stroke-width="2" class="connection-line" />
+            <path d="M50 45 V70" stroke="var(--accent)" stroke-width="2" class="connection-line" />
+            <path d="M110 45 V70" stroke="var(--accent)" stroke-width="2" class="connection-line" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Animated Microcontroller -->
+      <div class="microcontroller">
+        <svg viewBox="0 0 150 150" width="150" height="150">
+          <rect x="25" y="25" width="100" height="100" rx="10" fill="var(--accent)" class="chip-body" />
+          <!-- Pins -->
+          <g class="pins-left">
+            <rect x="15" y="35" width="10" height="5" fill="var(--accent-2)" />
+            <rect x="15" y="45" width="10" height="5" fill="var(--accent-2)" />
+            <rect x="15" y="55" width="10" height="5" fill="var(--accent-2)" />
+          </g>
+          <g class="pins-right">
+            <rect x="125" y="35" width="10" height="5" fill="var(--accent-2)" />
+            <rect x="125" y="45" width="10" height="5" fill="var(--accent-2)" />
+            <rect x="125" y="55" width="10" height="5" fill="var(--accent-2)" />
+          </g>
+          <!-- Processing Animation -->
+          <circle cx="75" cy="75" r="30" fill="none" stroke="var(--accent-2)" stroke-width="2" class="processing-ring" />
+        </svg>
+      </div>
+
+      <h2>Extras & Resources</h2>
+      <p class="sub">Everything to make learning fun and structured.</p>
+      <div class="features">
+        <div class="feature">
+          <span class="dot"></span>
+          <div>
+            <h3>Printable Checklists</h3>
+            <p class="muted">Each manual includes a one-page build checklist at the end—great for classrooms.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <span class="dot"></span>
+          <div>
+            <h3>Spare Parts Links</h3>
+            <p class="muted">Common parts and alternatives listed for easy replacement and upgrades.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <span class="dot"></span>
+          <div>
+            <h3>Extensions</h3>
+            <p class="muted">Turn each kit into a mini project—add sensors, code challenges, or design tweaks.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== FAQ =========================== -->
+  <section id="faq" class="section" style="border-top:1px solid var(--card-border)">
+    <div class="container">
+      <h2>FAQ</h2>
+      <p class="sub">Common questions from students, parents, and teachers.</p>
+      <div class="faq">
+        <details class="qa">
+          <summary>Do I need to install any app?</summary>
+          <div class="muted">No. Manuals open in your browser as PDFs. Everything is mobile-friendly.</div>
+        </details>
+        <details class="qa">
+          <summary>Can I use these in a classroom?</summary>
+          <div class="muted">Yes—print the checklist pages and use the timing boxes for assessments.</div>
+        </details>
+        <details class="qa">
+          <summary>What if a link is broken?</summary>
+          <div class="muted">Use the contact form below to report it. We'll update the manual and email you the fix.</div>
+        </details>
+        <details class="qa">
+          <summary>Are there video tutorials?</summary>
+          <div class="muted">Some kits have short clips embedded as QR links inside the PDF. More coming soon!</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== CONTACT =========================== -->
+  <section id="contact" class="section" style="border-top:1px solid var(--card-border)">
+    <div class="container contact">
+      <div>
+        <h2>Contact & Feedback</h2>
+        <p class="sub">Found an issue? Want to suggest a new kit? Tell us!</p>
+        <form onsubmit="event.preventDefault(); alert('Thanks! Your message was noted.'); this.reset();">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0;">
+            <input class="input" type="text" placeholder="Your name" required />
+            <input class="input" type="email" placeholder="Email" required />
+          </div>
+          <textarea class="input" rows="5" placeholder="Message"></textarea>
+          <div style="margin-top:10px; display:flex; gap:10px;">
+            <button class="btn primary" type="submit">Send Message</button>
+            <button class="btn" type="reset">Reset</button>
+          </div>
+        </form>
+      </div>
+      <div>
+        <div class="step">
+          <div class="num">Tip</div>
+          <h3>QR on every box</h3>
+          <p class="muted">Print one QR that points to this portal. Inside each kit, also print just its direct manual link for quick access.</p>
+          <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="btn" href="#kits">Go to Kits</a>
+            <a class="btn ghost" href="#faq">Read FAQ</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== FOOTER =========================== -->
+  <footer>
+    <div class="container foot">
+      <div>© <span id="year"></span> STEM Kits — Built for curious minds.</div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <a class="pill" href="#home" aria-label="Back to top">⬆️ Top</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to top floating button -->
+  <button class="to-top" id="toTop" aria-label="Back to top">↑</button>
+
+    <!-- =========================== MODAL =========================== -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <strong id="modalTitle">Kit</strong>
+        <button class="icon-btn" id="modalClose" aria-label="Close">✖</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <div class="card-media" style="height:220px"><img id="modalImg" alt="Kit preview" /></div>
+        </div>
+        <div>
+          <div style="margin-bottom:8px; font-weight:700">What you'll build</div>
+          <ul id="modalSteps" class="muted" style="display:grid; gap:6px; padding-left: 18px; list-style: decimal"></ul>
+          <div class="card-tags" id="modalTags"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <a class="btn primary" id="openManual" target="_blank" rel="noopener">📘 Open PDF Manual</a>
+        <a class="btn" id="openExtras" target="_blank" rel="noopener">🧪 Bonus Experiments</a>
+        <button class="btn" id="openController" style="display: none;">🎮 Open Controller</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controller Modal -->
+  <div class="modal controller-modal" id="controllerModal" role="dialog" aria-modal="true">
+    <div class="modal-card controller-card">
+      <div class="modal-head">
+        <strong>4WD Car Controller</strong>
+        <button class="icon-btn" id="controllerClose" aria-label="Close">✖</button>
+      </div>
+      <div id="controllerContainer" class="controller-content">
+        <!DOCTYPE html>
+        <div class="flex flex-col items-center justify-center min-h-screen p-4">
+            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+                <h1 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">🤖 Microcontroller Car Control 🚗</h1>
+
+                <!-- Connection Section -->
+                <div class="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                    <h2 class="text-2xl font-bold text-blue-700 mb-4 text-center">Connection Status</h2>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button id="connectButton" class="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
+                            Connect to Microcontroller
+                        </button>
+                        <button id="disconnectButton" disabled class="flex-1 px-6 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600">
+                            Disconnect
+                        </button>
+                    </div>
+                    <p id="statusMessage" class="mt-4 text-center text-gray-700 font-medium"></p>
+                </div>
+
+                <!-- Commands Section -->
+                <div class="mb-8 p-6 bg-green-50 rounded-lg border border-green-200">
+                    <h2 class="text-2xl font-bold text-green-700 mb-4 text-center">Send Commands</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <button class="command-button px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700" data-command="MODE_FOLLOWER">
+                            Follower Mode 🚶
+                        </button>
+                        <button class="command-button px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700" data-command="MODE_REMOTE">
+                            Remote Control Mode 🎮
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <button class="command-button px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 col-start-2" data-command="FORWARD">
+                            Forward ⬆️
+                        </button>
+                        <button class="command-button px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800" data-command="LEFT">
+                            Left ⬅️
+                        </button>
+                        <button class="command-button px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800" data-command="STOP">
+                            Stop 🛑
+                        </button>
+                        <button class="command-button px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800" data-command="RIGHT">
+                            Right ➡️
+                        </button>
+                        <button class="command-button px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 col-start-2" data-command="BACKWARD">
+                            Backward ⬇️
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Serial Data Display Section -->
+                <div class="p-6 bg-gray-800 rounded-lg border border-gray-700">
+                    <h2 class="text-2xl font-bold text-gray-200 mb-4 text-center">Received Serial Data</h2>
+                    <div class="scroll-container bg-gray-900 rounded-lg p-4">
+                        <pre id="receivedData" class="text-sm leading-relaxed whitespace-pre-wrap"></pre>
+                    </div>
+                    <button id="clearButton" class="mt-4 px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 w-full">
+                        Clear Console
+                    </button>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Controller Modal Specific Styles */
+    .controller-modal {
+      background: rgba(0, 0, 0, 0.8);
+    }
+    
+    .controller-card {
+      width: 95%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--surface);
+    }
+
+    .controller-content {
+      padding: 20px;
+      background: #f3f4f6;
+    }
+
+    /* Tailwind-like Utilities */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .gap-4 { gap: 1rem; }
+    .w-full { width: 100%; }
+    .p-4 { padding: 1rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+    .mb-8 { margin-bottom: 2rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .bg-white { background-color: white; }
+    .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+    .text-center { text-align: center; }
+    .grid { display: grid; }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .col-start-2 { grid-column-start: 2; }
+  </style>
+
+  <script>
+    // Add this to your existing JavaScript
+    document.addEventListener('DOMContentLoaded', () => {
+      // Controller functionality
+      const connectButton = document.getElementById('connectButton');
+      const disconnectButton = document.getElementById('disconnectButton');
+      const statusMessage = document.getElementById('statusMessage');
+      const receivedDataDisplay = document.getElementById('receivedData');
+      const commandButtons = document.querySelectorAll('.command-button');
+      const clearButton = document.getElementById('clearButton');
+
+      // Initialize button states
+      function updateConnectionButtons(connected) {
+        connectButton.disabled = connected;
+        disconnectButton.disabled = !connected;
+        commandButtons.forEach(button => button.disabled = !connected);
+      }
+      updateConnectionButtons(false);
+
+      // Serial connection handling
+      connectButton.addEventListener('click', async () => {
+        if (!('serial' in navigator)) {
+          statusMessage.textContent = 'Web Serial API not supported in this browser';
+          return;
+        }
+
+        try {
+          const port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 9600 });
+          updateConnectionButtons(true);
+          statusMessage.textContent = 'Connected!';
+        } catch (error) {
+          statusMessage.textContent = `Error: ${error.message}`;
+        }
+      });
+
+      // Command buttons
+      commandButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const command = button.dataset.command;
+          receivedDataDisplay.textContent += `\nSent command: ${command}`;
+          receivedDataDisplay.scrollTop = receivedDataDisplay.scrollHeight;
+        });
+      });
+
+      // Clear console
+      clearButton.addEventListener('click', () => {
+        receivedDataDisplay.textContent = '';
+      });
+    });
+  </script>  <!-- =========================== SCRIPT =========================== -->
+  <script>
+    // ---------- Data: Add/rename kits here ----------
+    const KITS = [
+      {
+        id: '4wd-car',
+        title: '4WD Smart Car',
+        img: 'images/kit-smart-car.png',
+        manual: 'manuals/4wd-car.pdf',
+        extras: 'manuals/4wd-car-extras.pdf',
+        level: 'intermediate',
+        tags: ['robotics', 'automation', 'sensors', 'coding'],
+        steps: [
+          'Assemble 4WD chassis & motors',
+          'Install ultrasonic & IR sensors',
+          'Set up Arduino control board',
+          'Program human follower mode',
+          'Configure obstacle avoidance',
+          'Test remote control features'
+        ]
+      },
+      {
+        id: '4dot-arm',
+        title: '4DOT Robotic Arm',
+        img: 'images/kit-robot-arm.png',
+        manual: 'manuals/4dot-arm.pdf',
+        extras: 'manuals/4dot-arm-extras.pdf',
+        level: 'advanced',
+        tags: ['robotics', 'automation', 'coding'],
+        steps: [
+          'Assemble base & main joint',
+          'Install servo motors',
+          'Mount end effector',
+          'Calibrate DOF ranges',
+          'Setup web interface',
+          'Configure knob controls'
+        ]
+      },
+      {
+        id: 'planzo',
+        title: 'PLanzo Smart Planner',
+        img: 'images/kit-planzo.png',
+        manual: 'manuals/planzo.pdf',
+        extras: 'manuals/planzo-extras.pdf',
+        level: 'intermediate',
+        tags: ['automation', 'sensors', 'coding'],
+        steps: [
+          'Install gesture sensor',
+          'Setup LED display',
+          'Program mode transitions',
+          'Configure timer system',
+          'Test gesture recognition',
+          'Customize timer settings'
+        ]
+      },
+      {
+        id: 'pcb-lab',
+        title: 'PCB Learning Lab',
+        img: 'images/kit-pcb.png',
+        manual: 'manuals/pcb-lab.pdf',
+        extras: 'manuals/pcb-experiments.pdf',
+        level: 'beginner',
+        tags: ['electronics', 'sensors'],
+        steps: [
+          'Learn basic components',
+          'Measure resistance values',
+          'Test different sensors',
+          'Explore logic gates',
+          'Build simple circuits',
+          'Troubleshoot connections'
+        ]
+      }
+    ];
+
+    // ---------- Render cards ----------
+    const grid = document.getElementById('grid');
+    const statKits = document.getElementById('statKits');
+    function renderCards(list){
+      grid.innerHTML = '';
+      list.forEach(k => {
+        const el = document.createElement('article');
+        el.className = 'card col-4 tilt';
+        el.setAttribute('tabindex','0');
+        el.setAttribute('role','button');
+        el.setAttribute('aria-label', `${k.title} — open preview`);
+        el.dataset.level = k.level;
+        el.dataset.tags = k.tags.join(' ');
+        el.dataset.title = k.title.toLowerCase();
+        el.innerHTML = `
+          <div class="card-media"><img src="${k.img}" alt="${k.title}"></div>
+          <div class="card-body">
+            <div class="card-title">${k.title}</div>
+            <div class="card-tags">
+              <span class="tag">${k.level}</span>
+              ${k.tags.map(t => `<span class='tag'>${t}</span>`).join('')}
+            </div>
+            <div class="card-actions">
+              <a class="btn primary" href="${k.manual}" target="_blank" rel="noopener">📘 Manual</a>
+              <button class="btn" data-open="${k.id}">Preview</button>
+            </div>
+          </div>`;
+        // open preview on card click (but not on manual link click)
+        el.addEventListener('click', (e) => {
+          const isLink = e.target.closest('a');
+          if(isLink) return; // let link work
+          openModal(k);
+        });
+        el.addEventListener('keyup', (e) => { if(e.key === 'Enter') openModal(k); });
+        grid.appendChild(el);
+      });
+      statKits.textContent = list.length;
+    }
+
+    renderCards(KITS);
+
+    // ---------- Search & Filter chips ----------
+    const searchInput = document.getElementById('searchInput');
+    const chips = document.getElementById('chips');
+    let activeFilter = 'all';
+
+    function applyFilter(){
+      const q = (searchInput.value || '').toLowerCase().trim();
+      const filtered = KITS.filter(k => {
+        const matchesText = !q || [k.title, k.level, k.tags.join(' ')].join(' ').toLowerCase().includes(q);
+        const matchesChip = activeFilter === 'all' || k.level === activeFilter || k.tags.includes(activeFilter);
+        return matchesText && matchesChip;
+      });
+      renderCards(filtered);
+    }
+
+    searchInput.addEventListener('input', applyFilter);
+    chips.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip');
+      if(!btn) return;
+      [...chips.children].forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilter();
+    });
+
+    // ---------- Modal ----------
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalImg = document.getElementById('modalImg');
+    const modalSteps = document.getElementById('modalSteps');
+    const modalTags = document.getElementById('modalTags');
+    const openManual = document.getElementById('openManual');
+    const openExtras = document.getElementById('openExtras');
+    const modalClose = document.getElementById('modalClose');
+
+    function openModal(kit){
+      modalTitle.textContent = kit.title;
+      modalImg.src = kit.img;
+      modalImg.alt = kit.title;
+      modalSteps.innerHTML = kit.steps.map(s => `<li>${s}</li>`).join('');
+      modalTags.innerHTML = `<span class='tag'>${kit.level}</span>` + kit.tags.map(t => `<span class='tag'>${t}</span>`).join('');
+      openManual.href = kit.manual;
+      openExtras.href = kit.extras;
+      
+      // Show controller button only for 4WD car
+      const openController = document.getElementById('openController');
+      if (kit.id === '4wd-car') {
+        openController.style.display = 'inline-flex';
+      } else {
+        openController.style.display = 'none';
+      }
+      
+      modal.classList.add('open');
+    }
+
+    // Controller Modal Handler
+    const controllerModal = document.getElementById('controllerModal');
+    const controllerClose = document.getElementById('controllerClose');
+    const openController = document.getElementById('openController');
+
+    openController.addEventListener('click', () => {
+      modal.classList.remove('open');
+      controllerModal.classList.add('open');
+    });
+
+    controllerClose.addEventListener('click', () => {
+      controllerModal.classList.remove('open');
+    });
+
+    controllerModal.addEventListener('click', (e) => {
+      if(e.target === controllerModal) controllerModal.classList.remove('open');
+    });
+
+    modalClose.addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('open'); });
+    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') modal.classList.remove('open'); });
+
+    // ---------- Back to top ----------
+    const toTop = document.getElementById('toTop');
+    toTop.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+    window.addEventListener('scroll', () => {
+      if(window.scrollY > 400) toTop.classList.add('show'); else toTop.classList.remove('show');
+    });
+
+    // ---------- Theme toggle & palette cycle ----------
+    const themeBtn = document.getElementById('themeBtn');
+    const paletteBtn = document.getElementById('paletteBtn');
+    const THEMES = ['theme-neon','theme-ocean','theme-sunset','theme-forest','theme-rose','theme-mono-dark'];
+
+    // load saved
+    const savedMode = localStorage.getItem('mode');
+    const savedTheme = localStorage.getItem('theme');
+    if(savedMode === 'light') document.body.classList.add('light');
+    if(savedTheme){ document.body.classList.add(savedTheme); }
+
+    themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      localStorage.setItem('mode', document.body.classList.contains('light') ? 'light' : 'dark');
+    });
+
+    paletteBtn.addEventListener('click', () => {
+      const current = THEMES.find(t => document.body.classList.contains(t)) || THEMES[0];
+      const idx = THEMES.indexOf(current);
+      document.body.classList.remove(...THEMES);
+      const next = THEMES[(idx + 1) % THEMES.length];
+      document.body.classList.add(next);
+      localStorage.setItem('theme', next);
+    });
+
+    // ---------- Year ----------
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

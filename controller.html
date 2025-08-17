@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microcontroller Car Controller</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and button focus */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        button:focus, a:focus {
+            outline: none; /* Remove default focus outline */
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* Custom blue focus ring */
+        }
+        /* Style for the text area to ensure it's readable */
+        #receivedData {
+            font-family: 'Roboto Mono', monospace; /* Monospace font for data */
+            font-size: 0.9em;
+            background-color: #1f2937; /* Dark background for console-like feel */
+            color: #d1d5db; /* Light gray text */
+            border-color: #4b5563; /* Darker border */
+        }
+        .scroll-container {
+            max-height: 400px; /* Limit height of the data display area */
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+        /* Custom scrollbar for better aesthetics */
+        .scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 10px;
+        }
+        .scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <!-- Previous body content remains the same -->
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl transform transition-all duration-300 hover:scale-105">
+        <!-- All your existing content -->
+        <!-- ... -->
+    </div>
+    <!-- Previous script content remains the same -->
+    <script>
+        // All your existing JavaScript code
+    </script>
+</body>
+</html>
