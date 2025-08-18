@@ -629,6 +629,20 @@
     .card-tags { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 6px; }
     .tag { font-size:.78rem; color:var(--muted); border:1px dashed var(--card-border); padding:4px 8px; border-radius:999px; }
     .card-actions { display:flex; gap:10px; }
+    .btn.secondary {
+      background: #4b5563;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .btn.secondary:hover {
+      background: #374151;
+    }
     .btn { 
       display: inline-flex; 
       align-items: center; 
@@ -1706,6 +1720,7 @@
         title: 'PLanzo Smart Planner',
         img: 'images/kit-planzo.png',
         manual: 'manuals/planzo.pdf',
+        controller: 'planzo-controller.html',
         extras: 'manuals/planzo-extras.pdf',
         level: 'intermediate',
         tags: ['automation', 'sensors', 'coding'],
@@ -1764,6 +1779,12 @@
                 <span style="font-size: 1.2em">�</span>
                 <span>Manual</span>
               </a>
+              ${k.controller ? `
+              <a class="btn secondary" href="${k.controller}" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>🎮</span>
+                <span>Controller</span>
+              </a>
+              ` : ''}
               <button class="btn" data-open="${k.id}">Preview</button>
             </div>
           </div>`;
