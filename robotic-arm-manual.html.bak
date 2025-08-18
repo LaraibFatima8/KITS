@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DOF Robotic Arm Kit Manual</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" xintegrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            background-color: #eef2f5;
+            color: #34495e;
+        }
+        .container {
+            width: 90%;
+            max-width: 950px;
+            margin: auto;
+            overflow: hidden;
+            padding: 0 25px;
+        }
+        header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            padding: 3rem 0;
+            text-align: center;
+            border-bottom: 6px solid #004085;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        header h1 {
+            font-size: 3.2em;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        header p {
+            font-size: 1.3em;
+            margin-top: 0.8rem;
+            opacity: 0.9;
+        }
+        .section {
+            background: #ffffff;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .section h2 {
+            font-size: 2.2em;
+            color: #0056b3;
+            border-bottom: 3px solid #e0e7ee;
+            padding-bottom: 12px;
+            margin-top: 0;
+            font-weight: 600;
+        }
+        .section h3 {
+            font-size: 1.6em;
+            color: #007bff;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .parts-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 25px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .parts-table th, .parts-table td {
+            border: 1px solid #e0e7ee;
+            padding: 15px;
+            text-align: left;
+        }
+        .parts-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .parts-table tr:nth-child(even) {
+            background-color: #f8faff;
+        }
+        img.step-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 30px auto;
+            border: 2px solid #e0e7ee;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 25px;
+            border-radius: 12px;
+            overflow-x: auto;
+            white-space: pre;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+        .tip {
+            background: #e6f7ff;
+            border-left: 6px solid #1890ff;
+            padding: 22px;
+            margin: 25px 0;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+        }
+        .caution {
+            background: #fff0f0;
+            border-left: 6px solid #f5222d;
+            padding: 22px;
+            margin: 25px 0;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 2px 8px rgba(255,0,0,0.1);
+        }
+        .tip h4, .caution h4 {
+            margin-top: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        .tip h4 { color: #1890ff; }
+        .caution h4 { color: #f5222d; }
+
+        hr {
+            border: none;
+            border-top: 2px dashed #dbe3eb;
+            margin: 40px 0;
+        }
+
+        #pdfButton {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 1000;
+        }
+        #pdfButton:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <button id="pdfButton">Download as PDF</button>
+
+    <div id="contentToPrint">
+        <header>
+            <div class="container">
+                <h1>⚙️ 4DOF Robotic Arm Kit</h1>
+                <p>Your Guide to Building and Controlling Your Robotic Arm!</p>
+                <img src="https://placehold.co/500x350/007bff/FFFFFF?text=4DOF+Robotic+Arm" alt="A photo of a 4DOF robotic arm" style="max-width: 450px; margin-top: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Rest of your content remains the same -->
+            <!-- ... content sections ... -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('pdfButton').addEventListener('click', function() {
+            const element = document.getElementById('contentToPrint');
+            const opt = {
+                margin: 0.5,
+                filename: 'robotic-arm-manual-customized.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save().then(() => {
+                console.log("PDF generated successfully!");
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+            });
+        });
+    </script>
+</body>
+</html>

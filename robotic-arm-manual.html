@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4DOF Robotic Arm Kit Manual</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            background-color: #eef2f5;
+            color: #34495e;
+        }
+        .container {
+            width: 90%;
+            max-width: 950px;
+            margin: auto;
+            overflow: hidden;
+            padding: 0 25px;
+        }
+        header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            padding: 3rem 0;
+            text-align: center;
+            border-bottom: 6px solid #004085;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        header h1 {
+            font-size: 3.2em;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        header p {
+            font-size: 1.3em;
+            margin-top: 0.8rem;
+            opacity: 0.9;
+        }
+        .section {
+            background: #ffffff;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .section h2 {
+            font-size: 2.2em;
+            color: #0056b3;
+            border-bottom: 3px solid #e0e7ee;
+            padding-bottom: 12px;
+            margin-top: 0;
+            font-weight: 600;
+        }
+        .section h3 {
+            font-size: 1.6em;
+            color: #007bff;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .parts-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 25px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .parts-table th, .parts-table td {
+            border: 1px solid #e0e7ee;
+            padding: 15px;
+            text-align: left;
+        }
+        .parts-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .parts-table tr:nth-child(even) {
+            background-color: #f8faff;
+        }
+        img.step-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 30px auto;
+            border: 2px solid #e0e7ee;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 25px;
+            border-radius: 12px;
+            overflow-x: auto;
+            white-space: pre;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+        .tip {
+            background: #e6f7ff;
+            border-left: 6px solid #1890ff;
+            padding: 22px;
+            margin: 25px 0;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+        }
+        .caution {
+            background: #fff0f0;
+            border-left: 6px solid #f5222d;
+            padding: 22px;
+            margin: 25px 0;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 2px 8px rgba(255,0,0,0.1);
+        }
+        .tip h4, .caution h4 {
+            margin-top: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        .tip h4 { color: #1890ff; }
+        .caution h4 { color: #f5222d; }
+        hr {
+            border: none;
+            border-top: 2px dashed #dbe3eb;
+            margin: 40px 0;
+        }
+        #pdfButton {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 1000;
+        }
+        #pdfButton:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <button id="pdfButton">Download as PDF</button>
+    <div id="contentToPrint">
+        <header>
+            <div class="container">
+                <h1>⚙️ 4DOF Robotic Arm Kit</h1>
+                <p>Your Guide to Building and Controlling Your Robotic Arm!</p>
+                <img src="images/kit-robot-arm.png" alt="A photo of a 4DOF robotic arm" style="max-width: 450px; margin-top: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="section">
+                <h2>👋 Welcome, Maker!</h2>
+                <p>Hello and welcome to the exciting world of robotics! This kit provides everything you need to build and program your own 4-degrees-of-freedom robotic arm. It's an excellent way to learn about mechanics, electronics, and coding.</p>
+                <p>This comprehensive manual will guide you through the assembly process step-by-step, from meticulously putting the pieces together to uploading the code that brings your arm to life. Get ready to create, innovate, and have fun!</p>
+                <div class="tip">
+                    <h4>What you will learn:</h4>
+                    <ul>
+                        <li><b>Mechanical Assembly:</b> Master the art of assembling an articulated robotic arm.</li>
+                        <li><b>Electronics:</b> Understand how to correctly wire multiple servo motors and a dedicated servo driver board.</li>
+                        <li><b>Programming:</b> Gain insights into controlling each joint of the arm using Arduino code.</li>
+                        <li><b>Troubleshooting:</b> Learn to identify and resolve common issues that may arise during your build.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="section">
+                <h2>🛠️ Before You Start: Tools Required</h2>
+                <p>To ensure a smooth and enjoyable building process, please gather these common tools before you begin:</p>
+                <ul>
+                    <li><b>Small Phillips Head Screwdriver</b> (PH0 or PH1)</li>
+                    <li><b>Small Flat Head Screwdriver</b> (for terminal blocks on PCA9685)</li>
+                    <li><b>Pliers</b> (needle-nose recommended for small parts)</li>
+                    <li><b>Wire Strippers</b> (if custom wire lengths are needed)</li>
+                    <li><b>Computer</b> with Arduino IDE installed and reliable internet access (for library downloads)</li>
+                    <li><b>USB Cable</b> (Type A to B, provided in kit)</li>
+                    <li><b>5V External Power Supply</b> (e.g., a phone charger with a USB cable that connects to PCA9685)</li>
+                </ul>
+                <div class="caution">
+                    <h4>🛑 Safety First!</h4>
+                    Always ensure your power supply is completely disconnected when making or changing any wiring connections to avoid short circuits or potential damage to sensitive electronic components.
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="section">
+                <h2>📦 What's In Your Kit?</h2>
+                <p>Before you embark on the assembly, carefully check that you have all the components listed below. Compare them with the illustrative image to ensure nothing is missing from your kit.</p>
+                <img src="images/kit-robot-arm.png" alt="A flat lay of all the robotic arm kit components" class="step-image">
+                <table class="parts-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Acrylic Arm Pieces</td><td>Precisely laser-cut parts forming the arm's structural frame.</td><td>1 set</td></tr>
+                        <tr><td>SG90/MG90S Servo Motors</td><td>Compact and efficient motors that control each joint's movement.</td><td>4</td></tr>
+                        <tr><td>Arduino UNO</td><td>The versatile microcontroller, serving as the central "brain" of your arm.</td><td>1</td></tr>
+                        <tr><td>PCA9685 Servo Driver</td><td>A powerful 16-channel, 12-bit PWM/Servo driver for precise motor control.</td><td>1</td></tr>
+                        <tr><td>Screws & Nuts</td><td>Various sizes of fasteners essential for secure assembly.</td><td>1 set</td></tr>
+                        <tr><td>Joystick Module</td><td>An intuitive input device for manual, real-time control of the arm's movements.</td><td>1</td></tr>
+                        <tr><td>Jumper Wires (Male-Male, Male-Female)</td><td>Assorted wires for making all the necessary electrical connections.</td><td>1 set</td></tr>
+                        <tr><td>USB Cable (Type A to B)</td><td>To establish communication and power between your Arduino and computer.</td><td>1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <div class="section">
+                <h2>🔩 Step-by-Step Assembly</h2>
+                <p>Follow these detailed steps carefully to assemble the mechanical structure of your robotic arm. Precision in each step will ensure optimal performance.</p>
+                
+                <h3>Step 1: Assemble the Base</h3>
+                <p><b>Instruction:</b> Begin by securely attaching the large, circular base plate to the vertical stand using the provided longer screws and nuts. This forms the stable and rigid foundation for your arm, allowing for smooth rotation.</p>
+                <img src="images/kit-robot-arm.png" alt="Step 1: Assemble the base of the robotic arm" class="step-image">
+                
+                <h3>Step 2: Mount the Base Servo</h3>
+                <p><b>Instruction:</b> Insert the first servo (designated for base rotation) into its specially designed slot on the vertical stand. Secure it firmly with the small screws. It's crucial to ensure the servo horn is centered at 90 degrees before attaching any acrylic pieces to it for accurate movement.</p>
+                <img src="images/kit-robot-arm.png" alt="Step 2: Mount the base servo" class="step-image">
+                
+                <h3>Step 3: Assemble Arm Segments & Remaining Servos</h3>
+                <p><b>Instruction:</b> Proceed to mount the remaining three servos (shoulder, elbow, and claw) into their respective arm segments. As you connect each segment, carefully attach the previous servo's horn to the next arm piece. Work your way sequentially from the shoulder to the claw, ensuring snug fits at each joint.</p>
+                <img src="images/kit-robot-arm.png" alt="Step 3: Connect the arm's links and mount servos" class="step-image">
+                
+                <h3>Step 4: Attach the Claw Mechanism</h3>
+                <p><b>Instruction:</b> The final servo controls the gripper. Mount this servo securely to the end of the last arm segment. Then, carefully attach the two claw pieces to its horn. Gently test that the claw opens and closes smoothly without any binding, indicating proper alignment.</p>
+                <img src="images/kit-robot-arm.png" alt="Step 4: Attach the robotic claw" class="step-image">
+            </div>
+            
+            <hr>
+
+            <div class="section">
+                <h2>🔌 Wiring Your Robot</h2>
+                <p>Carefully follow this wiring diagram. Proper connections are absolutely vital for your arm to function correctly and avoid damage to components. Pay close attention to power and data lines, and double-check each connection.</p>
+                <img src="images/kit-robot-arm.png" alt="Wiring diagram for the robotic arm" class="step-image">
+                <div class="tip">
+                    <h4>Wiring Summary:</h4>
+                    <ul>
+                        <li><b>PCA9685 Servo Driver Power:</b> Connect `VCC` and `GND` of the PCA9685 to your <b>external 5V power supply</b>. This is crucial as Arduino cannot supply enough current for four servos simultaneously.</li>
+                        <li><b>PCA9685 Data Lines (I2C):</b> Connect PCA9685's `SDA` pin to Arduino's `A4` and `SCL` pin to Arduino's `A5` for efficient I2C communication.</li>
+                        <li><b>Servos:</b> Connect each of the four servos to the corresponding channel headers on the PCA9685 board (e.g., base servo to channel 0, shoulder to 1, elbow to 2, claw to 3). Ensure the signal, VCC, and GND pins align correctly.</li>
+                        <li><b>Joystick Power:</b> Connect the joystick's `VCC` to Arduino's `5V` and `GND` to Arduino's `GND`.</li>
+                        <li><b>Joystick Data Lines:</b> Connect the joystick's `VRX` (X-axis analog output) to Arduino's `A0` and `VRY` (Y-axis analog output) to Arduino's `A1`.</li>
+                        <li><b>Claw Button/Switch (Optional):</b> If you choose to add a button for the claw (as per the code example), connect one side to Arduino's `A3` and the other side to `GND` (leveraging the internal pull-up resistor enabled in the code).</li>
+                    </ul>
+                </div>
+                <div class="caution">
+                    <h4>⚠️ External Power Supply for Servos is MANDATORY!</h4>
+                    The Arduino's onboard 5V pin is not designed to supply sufficient current for multiple servo motors. Always use a dedicated external 5V power supply connected directly to the PCA9685 board to prevent potential damage to your Arduino, or erratic and unreliable servo behavior.
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="section">
+                <h2>💻 Bringing Your Arm to Life! (The Code)</h2>
+                <p>This Arduino code will enable you to control the robotic arm using the connected joystick module. Before uploading, you will need to install the <b>Adafruit PWM Servo Driver Library</b> in your Arduino IDE (navigate to `Sketch > Include Library > Manage Libraries...` and search for "Adafruit PWM Servo Driver").</p>
+                <p>Once the library is installed, upload this code to your Arduino UNO. Ensure you have selected the correct Board (`Arduino Uno`) and Port in the Arduino IDE's "Tools" menu before clicking the Upload button.</p>
+                <div class="code-block">
+<pre>#include &lt;Wire.h&gt; // Required for I2C communication with PCA9685
+#include &lt;Adafruit_PWMServoDriver.h&gt; // Library to control the PCA9685 board
+
+// --- Define Servo Driver Object ---
+// Initialize the PCA9685 driver with its default I2C address, which is 0x40.
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+// --- Servo Pulse Lengths ---
+// These values are crucial as they define the minimum and maximum pulse lengths
+// (out of 4096 total pulse steps) that correspond to 0 and 180 degrees for your servos.
+// You may need to slightly adjust these SERVOMIN and SERVOMAX values based on
+// the specific characteristics of your SG90 or MG90S servo motors for optimal range.
+#define SERVOMIN 150  // Minimum pulse length count for 0 degrees (typically 150)
+#define SERVOMAX 600  // Maximum pulse length count for 180 degrees (typically 600)
+
+// --- Define Servo Channels (on PCA9685 board) ---
+// These integers specify which physical channel on the PCA9685 board each servo
+// is connected to. Ensure these match your actual wiring setup.
+int basePin = 0;    // Servo for the base rotation (connected to PCA9685 channel 0)
+int shoulderPin = 1; // Servo for the shoulder joint (connected to PCA9685 channel 1)
+int elbowPin = 2;   // Servo for the elbow joint (connected to PCA9685 channel 2)
+int clawPin = 3;    // Servo for the claw/gripper mechanism (connected to PCA9685 channel 3)
+
+// --- Define Joystick Pins (on Arduino UNO) ---
+// These define the analog input pins on the Arduino UNO where the joystick's
+// X and Y axis outputs are connected. A3 is used for an optional button.
+int joystickX = A0; // Analog pin for joystick X-axis (will control the base servo)
+int joystickY = A1; // Analog pin for joystick Y-axis (will control shoulder and elbow servos)
+int clawButtonPin = A3; // Digital pin for an optional button to control the claw
+
+// --- Variables to store current servo angles ---
+// These variables will hold the current target angle for each servo, ranging from 0 to 180 degrees.
+// They are initialized to a neutral (90-degree) or open (claw) position.
+int baseAngle = 90;     // Initial angle for base (center position)
+int shoulderAngle = 90; // Initial angle for shoulder joint
+int elbowAngle = 90;    // Initial angle for elbow joint
+int clawAngle = 90;     // Initial angle for claw (open position)
+
+void setup() {
+    Serial.begin(9600); // Initialize serial communication at 9600 baud rate for debugging messages
+    Serial.println("4DOF Robotic Arm Ready!"); // Print a startup message to the Serial Monitor
+
+    pwm.begin();       // Begin communication with the PCA9685 board
+    pwm.setPWMFreq(60); // Set the PWM frequency to 60 Hz, which is standard and suitable for most hobby servos.
+
+    // Set initial position for all servos to ensure they are in a defined state upon startup.
+    // This helps prevent sudden movements or starting in an undesirable position.
+    setServoAngle(basePin, baseAngle);
+    setServoAngle(shoulderPin, shoulderAngle);
+    setServoAngle(elbowPin, elbowAngle);
+    setServoAngle(clawPin, clawAngle);
+
+    // Initialize the claw button pin. INPUT_PULLUP enables an internal pull-up resistor,
+    // meaning the pin will be HIGH by default and go LOW when the button is pressed (connected to GND).
+    pinMode(clawButtonPin, INPUT_PULLUP);
+}
+
+void loop() {
+    // --- Read Joystick Values ---
+    // analogRead() reads the voltage on the specified analog pin and returns a value
+    // between 0 (0V) and 1023 (5V). These values represent the joystick's position.
+    int xVal = analogRead(joystickX);
+    int yVal = analogRead(joystickY);
+    // digitalRead() reads the state of the digital pin (HIGH or LOW).
+    int buttonState = digitalRead(clawButtonPin); // Read the state of the claw button
+
+    // --- Map Joystick Values to Servo Angles ---
+    // The map() function is used to scale a number from one range to another.
+    // Here, joystick values (0-1023) are mapped to servo angles (0-180 degrees).
+    // The base servo's angle is controlled by the joystick's X-axis.
+    baseAngle = map(xVal, 0, 1023, 0, 180);
+    // The shoulder angle is controlled by the joystick's Y-axis. You might need to
+    // adjust the 0-180 range based on your arm's physical movement limits to prevent strain.
+    shoulderAngle = map(yVal, 0, 1023, 0, 180);
+    // For simplicity, the elbow servo currently follows the shoulder's movement.
+    // To add independent elbow control, you could connect another potentiometer or
+    // joystick axis to a new analog pin and map its value to elbowAngle.
+    elbowAngle = map(yVal, 0, 1023, 0, 180);
+
+    // --- Control the Claw with a Button ---
+    // This conditional statement checks the state of the claw button.
+    // If the button is pressed (LOW, due to INPUT_PULLUP), the claw closes.
+    // Otherwise (button not pressed, HIGH), the claw opens.
+    // Adjust 180 and 90 degrees as needed for your specific claw mechanism's open/close angles.
+    if (buttonState == LOW) { // Button is pressed
+        clawAngle = 180; // Close the claw (e.g., servo moves to 180 degrees)
+    } else {
+        clawAngle = 90;  // Open the claw (e.g., servo moves to 90 degrees)
+    }
+
+    // --- Write New Angles to Servos ---
+    // Update the position of each servo with the newly calculated angles.
+    setServoAngle(basePin, baseAngle);
+    setServoAngle(shoulderPin, shoulderAngle);
+    setServoAngle(elbowPin, elbowAngle);
+    setServoAngle(clawPin, clawAngle);
+
+    delay(15); // A short delay is added to prevent excessive servo updates, which can cause
+               // jitter, consume unnecessary power, and make movements less smooth.
+}
+
+/**
+ * @brief Sets a specific servo's angle using the PCA9685 driver.
+ * This function converts a human-readable angle (0-180 degrees) into the
+ * pulse length value required by the PCA9685 board to position the servo.
+ * @param servoChannel The channel number on the PCA9685 board (0-15) where the servo is connected.
+ * @param angle The desired angle for the servo, ranging from 0 to 180 degrees.
+ */
+void setServoAngle(uint8_t servoChannel, int angle) {
+    // Map the input angle (0-180) to the corresponding servo pulse length range
+    // defined by SERVOMIN and SERVOMAX. This translates a logical angle to a
+    // hardware-specific PWM value.
+    uint16_t pulselen = map(angle, 0, 180, SERVOMIN, SERVOMAX);
+    // Send the calculated PWM pulse length to the specified PCA9685 channel,
+    // commanding the servo to move to the desired position.
+    pwm.setPWM(servoChannel, 0, pulselen);
+}</pre>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="section">
+                <h2>🔍 Troubleshooting Guide</h2>
+                <p>Encountered a problem during assembly or operation? Don't worry, it's a common part of building. Here are some common issues and their effective solutions to get your arm working smoothly.</p>
+                
+                <h3>Arm Not Moving or Moving Erraticly:</h3>
+                <ul>
+                    <li><b>Power Supply:</b> Critical! Ensure you are using an <b>external 5V power supply</b> connected to the PCA9685 board, not solely relying on the Arduino's 5V output. Servos demand more current than the Arduino can safely provide.</li>
+                    <li><b>Wiring Check:</b> Meticulously double-check all connections, paying close attention to `VCC`, `GND`, `SDA`, and `SCL` pins on the PCA9685, as well as the signal, power, and ground wires for each individual servo.</li>
+                    <li><b>Servo Orientation:</b> Confirm that all servos are mounted correctly within the acrylic pieces and that their horns are securely attached to the arm segments without slipping.</li>
+                    <li><b>Servo Jitter:</b> If servos are exhibiting slight, rapid movements (jitter), try increasing the `delay()` in the `loop()` function slightly (e.g., from 15ms to 20ms or 50ms) to reduce the update rate.</li>
+                </ul>
+
+                <h3>Arduino Not Connecting or Uploading Code:</h3>
+                <ul>
+                    <li><b>Correct Board/Port:</b> In the Arduino IDE, navigate to `Tools > Board` and select "Arduino Uno". Then, go to `Tools > Port` and ensure you select the correct COM port corresponding to your connected Arduino.</li>
+                    <li><b>USB Cable:</b> Test with a different USB cable. Some cables are "charge-only" and lack the data lines necessary for communication with the Arduino.</li>
+                    <li><b>Drivers:</b> Verify that the necessary Arduino UNO drivers are correctly installed on your computer. Refer to the official Arduino website for driver installation guides.</li>
+                </ul>
+
+                <h3>Servos Making Noise but Not Moving:</h3>
+                <ul>
+                    <li><b>Mechanical Obstruction:</b> Check for any physical parts (like screws, wires, or acrylic pieces) that might be obstructing the arm's full range of motion.</li>
+                    <li><b>Servo Horn Alignment:</b> Ensure servo horns are not stripped or loose on the servo shaft. If they are, replace them or re-seat them firmly.</li>
+                    <li><b>Angle Limits:</b> If a servo is commanded to move to an angle outside its physical limits (e.g., values less than 0 or greater than 180 degrees), it might struggle or make noise without moving. Review your `map()` function limits and `SERVOMIN`/`SERVOMAX` values in the code.</li>
+                </ul>
+
+                <h3>Joystick Not Responding:</h3>
+                <ul>
+                    <li><b>Wiring Check:</b> Verify all `VCC`, `GND`, `VRX`, and `VRY` connections for the joystick module.</li>
+                    <li><b>Analog Pins:</b> Confirm that `joystickX` and `joystickY` are correctly connected to analog input pins on the Arduino (`A0`, `A1`, etc.).</li>
+                    <li><b>Serial Monitor Debugging:</b> Uncomment the `Serial.print()` lines in the Arduino code's `loop()` function and open the Arduino IDE's Serial Monitor. This will display the raw joystick values, helping you confirm if the joystick is sending data correctly.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('pdfButton').addEventListener('click', function() {
+            const element = document.getElementById('contentToPrint');
+            const opt = {
+                margin: 0.5,
+                filename: 'robotic-arm-manual-customized.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save().then(() => {
+                console.log("PDF generated successfully!");
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+            });
+        });
+    </script>
+</body>
+</html>

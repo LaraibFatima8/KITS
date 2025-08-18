@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Robot Car Kit Manual</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        /* Using a more modern font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: auto;
+            overflow: hidden;
+            padding: 0 20px;
+        }
+        header {
+            background: #005A9C;
+            color: #fff;
+            padding: 2.5rem 0;
+            text-align: center;
+            border-bottom: #007BFF 5px solid;
+        }
+        header h1 {
+            font-size: 2.8em;
+            font-weight: 700;
+            margin: 0;
+        }
+        header p {
+            font-size: 1.2em;
+            margin-top: 0.5rem;
+        }
+        .section {
+            background: #fff;
+            margin: 25px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .section h2 {
+            font-size: 1.8em;
+            color: #005A9C;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .section h3 {
+            font-size: 1.4em;
+            color: #007BFF;
+            margin-top: 25px;
+        }
+        .parts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .parts-table th, .parts-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .parts-table th {
+            background-color: #007BFF;
+            color: white;
+            font-weight: 500;
+        }
+        img.step-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 25px auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+        .tip {
+            background: #e7f3fe;
+            border-left: 5px solid #2196F3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .tip h4 {
+            margin-top: 0;
+            color: #1e88e5;
+        }
+        /* PDF Download Button Styles */
+        #pdfButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+            z-index: 1000;
+        }
+        #pdfButton:hover {
+            background-color: #005A9C;
+        }
+    </style>
+</head>
+<body>
+    <button id="pdfButton">Download as PDF</button>
+    
+    <div id="contentToPrint">
+        <header>
+            <div class="container">
+                <h1>The Ultimate Robot Car Kit!</h1>
+                <p>Your Adventure in Robotics and Coding Starts NOW!</p>
+                <img src="images/kit-smart-car.png" alt="A heroic shot of the finished Arduino robot car" style="max-width: 400px; margin-top: 20px; border-radius: 8px;">
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="section">
+                <h2>Welcome, Future Innovator!</h2>
+                <p>Hello and welcome to the world of robotics! You're holding more than just a box of parts; you're holding the key to unlocking your creativity, learning to code, and building your very own smart robot. This kit is designed for curious minds like yours. We'll guide you through every screw, wire, and line of code.</p>
+                <p>Don't worry if this is your first time building a robot. Every expert was once a beginner! Take your time, follow the steps, and most importantly, have fun!</p>
+                <div class="tip">
+                    <h4>What you will learn:</h4>
+                    <ul>
+                        <li><b>Mechanical Assembly:</b> How to put parts together to build a working machine.</li>
+                        <li><b>Electronics:</b> How to connect sensors, motors, and the robot's "brain."</li>
+                        <li><b>Programming:</b> How to write code to give your robot instructions and make it smart.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>What's In Your Kit?</h2>
+                <p>Before you start, let's make sure you have all your parts. Check your kit against this list.</p>
+                <img src="images/kit-smart-car.png" alt="A flat lay of all the robot kit components" class="step-image">
+                <table class="parts-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Chassis Plate</td><td>The base of your robot where everything mounts.</td><td>1</td></tr>
+                        <tr><td>Arduino UNO</td><td>The "brain" of your robot.</td><td>1</td></tr>
+                        <tr><td>V5 Sensor Shield</td><td>Makes connecting sensors and motors easy.</td><td>1</td></tr>
+                        <tr><td>L298N Motor Driver</td><td>The "muscle" that controls the motors.</td><td>1</td></tr>
+                        <tr><td>DC Gear Motors</td><td>These spin the wheels.</td><td>2</td></tr>
+                        <tr><td>Wheels</td><td>The robot's wheels.</td><td>2</td></tr>
+                        <tr><td>Caster Wheel</td><td>A free-swiveling wheel for balance.</td><td>1</td></tr>
+                        <tr><td>Ultrasonic Sensor</td><td>The "eyes" of your robot.</td><td>1</td></tr>
+                        <tr><td>Servo Motor</td><td>A motor that allows the "eyes" to look around.</td><td>1</td></tr>
+                        <tr><td>Battery Holder</td><td>Powers your robot.</td><td>1</td></tr>
+                        <tr><td>USB Cable</td><td>Connects your Arduino to a computer.</td><td>1</td></tr>
+                        <tr><td>Screws, Nuts & Wires</td><td>A bag of fasteners and connectors.</td><td>1 set</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>Step-by-Step Assembly</h2>
+
+                <h3>Step 1: Mount the Motors</h3>
+                <p><b>Instruction:</b> Place a motor on the chassis. Secure it using two brackets, four long screws, and four nuts. Repeat for the second motor.</p>
+                <img src="images/kit-smart-car.png" alt="Illustration of mounting the DC motors to the chassis" class="step-image">
+
+                <h3>Step 2: Attach the Wheels</h3>
+                <p><b>Instruction:</b> Align the slot on the wheel with the motor's shaft and gently but firmly push the wheels on.</p>
+                <img src="images/kit-smart-car.png" alt="Illustration of attaching a wheel to a motor" class="step-image">
+
+                <h3>Step 3: Add the Caster Wheel</h3>
+                <p><b>Instruction:</b> Attach the ball caster wheel to the front end of the chassis using short screws and nuts.</p>
+                <img src="images/kit-smart-car.png" alt="Illustration of mounting the caster wheel" class="step-image">
+
+                <h3>Step 4: Mount the Brain (Arduino & Shield)</h3>
+                <p><b>Instruction:</b> Mount the Arduino UNO using standoffs. Then, press the V5 Sensor Shield firmly onto the Arduino, making sure all the pins align.</p>
+                <img src="images/kit-smart-car.png" alt="Illustration of mounting the Arduino and Sensor Shield" class="step-image">
+                
+                <h3>Step 5: Mount the Muscle (Motor Driver)</h3>
+                <p><b>Instruction:</b> Find a good spot for the L298N motor driver, usually behind the Arduino, and mount it with standoffs.</p>
+                <img src="images/kit-smart-car.png" alt="Illustration of mounting the L298N Motor Driver" class="step-image">
+
+                <h3>Step 6: Assemble the Robot's Head</h3>
+                <p><b>Instruction:</b> Snap the Ultrasonic Sensor into its bracket and attach the bracket to the servo motor. Mount the servo to the front of the chassis.</p>
+                <img src="images/kit-smart-car.png" alt="Illustration of assembling the sensor and servo head" class="step-image">
+            </div>
+            
+            <div class="section">
+                <h2>Wiring Your Robot</h2>
+                <p>Pay close attention to the colors and ports. This diagram shows how everything connects.</p>
+                <img src="images/kit-smart-car.png" alt="A colorful wiring diagram for the robot" class="step-image">
+                <div class="tip">
+                    <h4>Wiring Summary:</h4>
+                    <ul>
+                        <li><b>Motors</b> connect to the green <b>L298N Motor Driver</b> output terminals.</li>
+                        <li><b>L298N Control Pins (IN1-4, ENA, ENB)</b> connect to <b>Digital Pins 4, 5, 6, 7, 9, 10</b> on the Sensor Shield.</li>
+                        <li><b>Servo Motor</b> connects to the <b>Pin 11</b> header on the shield.</li>
+                        <li><b>Ultrasonic Sensor</b> connects to <b>Pins 12, 13, 5V, and GND</b>.</li>
+                        <li><b>Battery Holder</b> connects to the <b>L298N power input</b>.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Bringing Your Robot to Life! (The Code)</h2>
+                <p>Use the Arduino IDE software to upload this code to your robot's brain via the USB cable.</p>
+                <div class="code-block">
+<pre>#include &lt;Servo.h&gt;
+
+// --- Define Pins ---
+const int ENA = 9, IN1 = 7, IN2 = 6;
+const int IN3 = 5, IN4 = 4, ENB = 10;
+const int trigPin = 12, echoPin = 13;
+const int servoPin = 11;
+
+long duration;
+int distance;
+Servo myServo;
+
+void setup() {
+  pinMode(ENA, OUTPUT); pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT); pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT); pinMode(ENB, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  myServo.attach(servoPin);
+  myServo.write(90);
+  Serial.begin(9600);
+}
+
+void loop() {
+  distance = getDistance();
+  if (distance <= 20) {
+    robotStop();
+    delay(500);
+    lookAndDecide();
+  } else {
+    robotForward();
+  }
+}
+
+int getDistance() {
+  digitalWrite(trigPin, LOW); delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH); delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  return duration * 0.034 / 2;
+}
+
+void lookAndDecide() {
+  myServo.write(180); delay(1000);
+  int distanceLeft = getDistance();
+  myServo.write(0); delay(1000);
+  int distanceRight = getDistance();
+  myServo.write(90); delay(500);
+  if (distanceLeft > distanceRight) {
+    robotTurnLeft(); delay(500);
+  } else {
+    robotTurnRight(); delay(500);
+  }
+}
+
+void robotForward() {
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+  analogWrite(ENA, 200); analogWrite(ENB, 200);
+}
+
+void robotStop() {
+  digitalWrite(IN1, LOW); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW); digitalWrite(IN4, LOW);
+}
+
+void robotTurnLeft() {
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW); digitalWrite(IN4, HIGH);
+  analogWrite(ENA, 180); analogWrite(ENB, 180);
+}
+
+void robotTurnRight() {
+  digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+  analogWrite(ENA, 180); analogWrite(ENB, 180);
+}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('pdfButton').addEventListener('click', function() {
+            const element = document.getElementById('contentToPrint');
+            const opt = {
+              margin: 0.5,
+              filename: 'robot-car-manual.pdf',
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true },
+              jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        });
+    </script>
+</body>
+</html>

@@ -888,6 +888,7 @@
         <a href="#kits">Kits</a>
         <a href="#how">How it works</a>
         <a href="#faq">FAQ</a>
+        <a href="robotic-arm-manual.html" target="_blank">Robotic Arm Manual</a>
         <a href="#resources">Resources</a>
         <a href="#contact">Contact</a>
       </div>
@@ -1672,8 +1673,7 @@
         id: '4wd-car',
         title: '4WD Smart Car',
         img: 'images/kit-smart-car.png',
-        manual: 'manuals/4wd-car.pdf',
-        extras: 'manuals/4wd-car-extras.pdf',
+        manual: 'robot-car-manual.html',
         level: 'intermediate',
         tags: ['robotics', 'automation', 'sensors', 'coding'],
         steps: [
@@ -1689,8 +1689,7 @@
         id: '4dot-arm',
         title: '4DOT Robotic Arm',
         img: 'images/kit-robot-arm.png',
-        manual: 'manuals/4dot-arm.pdf',
-        extras: 'manuals/4dot-arm-extras.pdf',
+        manual: 'robotic-arm-manual.html',
         level: 'advanced',
         tags: ['robotics', 'automation', 'coding'],
         steps: [
@@ -1761,7 +1760,10 @@
               ${k.tags.map(t => `<span class='tag'>${t}</span>`).join('')}
             </div>
             <div class="card-actions">
-              <a class="btn primary" href="${k.manual}" target="_blank" rel="noopener">📘 Manual</a>
+              <a class="btn primary" href="${k.manual}" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.2em">�</span>
+                <span>Manual</span>
+              </a>
               <button class="btn" data-open="${k.id}">Preview</button>
             </div>
           </div>`;
