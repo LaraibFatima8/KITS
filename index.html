@@ -169,6 +169,73 @@
       animation: carBounce 3s ease-in-out infinite;
     }
 
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal.open {
+      display: flex;
+      animation: modalFadeIn 0.3s ease-out;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow: auto;
+      position: relative;
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--card-border);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .modal-content {
+      padding: 1.5rem;
+    }
+
+    .ip-modal-card {
+      background: linear-gradient(135deg, #1a1c2c, #4a1c40);
+      color: white;
+    }
+
+    .ip-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes modalSlideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
     .smart-car .wheel {
       transform-origin: center;
       animation: wheelSpin 2s linear infinite;
@@ -901,9 +968,62 @@
       </svg>
     </div>
     <div class="container hero-grid">
-      <div>
+      <div class="hero-content">
+        <style>
+          .hero-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          
+          .pill {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1.5rem;
+            border-radius: 100px;
+            font-size: clamp(0.875rem, 2vw, 1.125rem);
+            display: inline-block;
+            margin-bottom: 0.5rem;
+          }
+          
+          .hero-content h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            line-height: 1.2;
+            margin: 0;
+            letter-spacing: -0.02em;
+          }
+          
+          .gradient-text {
+            background: linear-gradient(90deg,var(--accent),var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline;
+          }
+          
+          .lead {
+            font-size: clamp(1rem, 1.5vw, 1.25rem);
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0;
+          }
+
+          @media (max-width: 768px) {
+            .hero-content {
+              text-align: center;
+              padding: 0 1rem;
+            }
+            .hero-content h1 {
+              font-size: clamp(1.75rem, 4vw, 2.5rem);
+            }
+            .lead {
+              font-size: clamp(0.875rem, 3vw, 1rem);
+            }
+          }
+        </style>
         <span class="pill">Learn • Build • Play</span>
-        <h1>All your <span style="background:linear-gradient(90deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent;">STEM Kits</span> in one portal</h1>
+        <h1>All your <span class="gradient-text">STEM Kits</span> in one portal</h1>
         <p class="lead">Click a kit to open its manual, watch build steps, and explore bonus experiments. Public link—just add it as a QR on the box!</p>
 
         <div class="search-wrap" aria-label="Search and filters">
@@ -1208,19 +1328,188 @@
       <div class="modal-actions">
         <a class="btn primary" id="openManual" target="_blank" rel="noopener">📘 Open PDF Manual</a>
         <a class="btn" id="openExtras" target="_blank" rel="noopener">🧪 Bonus Experiments</a>
-        <button class="btn" id="openController" style="display: none;">🎮 Open Controller</button>
+        <button class="btn glow-effect" id="openController" style="display: none;">🔌 Connect to Car</button>
       </div>
     </div>
   </div>
 
-  <!-- Controller Modal -->
-  <div class="modal controller-modal" id="controllerModal" role="dialog" aria-modal="true">
-    <div class="modal-card controller-card">
+  <!-- IP Address Modal -->
+  <div class="modal" id="ipModal">
+    <div class="modal-card ip-modal-card">
       <div class="modal-head">
-        <strong>4WD Car Controller</strong>
-        <button class="icon-btn" id="controllerClose" aria-label="Close">✖</button>
+        <strong>Connect to 4WD Car</strong>
+        <button class="icon-btn" id="ipModalClose">✖</button>
       </div>
-      <div id="controllerContainer" class="controller-content">
+      <div class="modal-content ip-modal-content">
+        <style>
+          .ip-modal-card {
+            background: linear-gradient(135deg, #1a1c2c, #4a1c40);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        animation: slideDown 0.5s ease-out;
+      }
+
+      @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .ip-input-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .ip-input {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        animation: glow 2s infinite;
+      }
+
+      .ip-input:focus {
+        outline: none;
+        box-shadow: 0 0 15px rgba(82,168,236,0.6);
+      }
+
+      @keyframes glow {
+        0%, 100% { box-shadow: 0 0 5px rgba(82,168,236,0.3); }
+        50% { box-shadow: 0 0 20px rgba(82,168,236,0.6); }
+      }
+
+      .connect-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(45deg, #00b4db, #0083b0);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .connect-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,180,219,0.4);
+      }
+
+      .connect-btn:active {
+        transform: translateY(0);
+      }
+
+      .status-indicator {
+        text-align: center;
+        margin: 10px 0;
+        padding: 8px;
+        border-radius: 6px;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .status-disconnected {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+      }
+
+      .status-connected {
+        background: rgba(72,187,120,0.2);
+        color: #4ade80;
+      }
+
+      .status-error {
+        background: rgba(239,68,68,0.2);
+        color: #f87171;
+      }
+
+      .monitor-container {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 8px;
+      }
+
+      .monitor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        color: #fff;
+      }
+
+      .clear-btn {
+        background: none;
+        border: none;
+        color: #60a5fa;
+        cursor: pointer;
+        font-size: 14px;
+        transition: color 0.3s ease;
+      }
+
+      .clear-btn:hover {
+        color: #93c5fd;
+      }
+
+      #receivedData {
+        width: 100%;
+        height: 150px;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        background: #1a1c2c;
+        color: #a5f3fc;
+        font-family: monospace;
+        resize: none;
+        line-height: 1.5;
+      }
+
+      #receivedData::placeholder {
+        color: rgba(165,243,252,0.5);
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes rainbow {
+        0% { border-color: #ff0000; }
+        17% { border-color: #ff8000; }
+        33% { border-color: #ffff00; }
+        50% { border-color: #00ff00; }
+        67% { border-color: #0000ff; }
+        83% { border-color: #8000ff; }
+        100% { border-color: #ff0000; }
+      }
+    </style>
+
+    <div class="ip-input-container">
+      <input type="text" id="ipAddress" class="ip-input" 
+             placeholder="Enter Kit IP Address (e.g., 192.168.4.1)" value="192.168.4.1">
+      <button id="connectBtn" class="connect-btn">Connect</button>
+    </div>
+    
+    <div id="connectionStatus" class="status-indicator status-disconnected">
+      Not connected
+    </div>
+
+    <div class="monitor-container">
+      <div class="monitor-header">
+        <span>Serial Monitor</span>
+        <button id="clearBtn" class="clear-btn">Clear</button>
+      </div>
+      <textarea id="receivedData" readonly 
+                placeholder="Connection logs will appear here..."></textarea>
+    </div>
         <!DOCTYPE html>
         <div class="flex flex-col items-center justify-center min-h-screen p-4">
             <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
@@ -1545,22 +1834,104 @@
       modal.classList.add('open');
     }
 
-    // Controller Modal Handler
-    const controllerModal = document.getElementById('controllerModal');
-    const controllerClose = document.getElementById('controllerClose');
+    // IP Modal Handler
+    const ipModal = document.getElementById('ipModal');
+    const ipModalClose = document.getElementById('ipModalClose');
     const openController = document.getElementById('openController');
+    const ipInput = document.getElementById('ipAddress');
+    const connectBtn = document.getElementById('connectBtn');
+    const statusDiv = document.getElementById('connectionStatus');
+    const receivedData = document.getElementById('receivedData');
+    const clearBtn = document.getElementById('clearBtn');
+    let ws = null;
 
     openController.addEventListener('click', () => {
       modal.classList.remove('open');
-      controllerModal.classList.add('open');
+      ipModal.classList.add('open');
     });
 
-    controllerClose.addEventListener('click', () => {
-      controllerModal.classList.remove('open');
+    ipModalClose.addEventListener('click', () => {
+      ipModal.classList.remove('open');
+      if (ws) {
+        ws.close();
+        connectBtn.textContent = 'Connect';
+        statusDiv.textContent = 'Disconnected';
+        statusDiv.className = 'status-indicator status-disconnected';
+      }
     });
 
-    controllerModal.addEventListener('click', (e) => {
-      if(e.target === controllerModal) controllerModal.classList.remove('open');
+    ipModal.addEventListener('click', (e) => {
+      if (e.target === ipModal) {
+        ipModal.classList.remove('open');
+        if (ws) {
+          ws.close();
+          connectBtn.textContent = 'Connect';
+          statusDiv.textContent = 'Disconnected';
+          statusDiv.className = 'status-indicator status-disconnected';
+        }
+      }
+    });
+
+    // Connect to WebSocket
+    connectBtn.addEventListener('click', () => {
+      const ip = ipInput.value;
+      
+      if (ws) {
+        ws.close();
+        connectBtn.textContent = 'Connect';
+        statusDiv.textContent = 'Disconnected';
+        statusDiv.className = 'status-indicator status-disconnected';
+        return;
+      }
+
+      try {
+        // Redirect to the web interface
+        window.open(`http://${ip}`, '_blank');
+        
+        // Also establish WebSocket connection for serial monitor
+        ws = new WebSocket(`ws://${ip}/ws`);
+        
+        ws.onopen = () => {
+          statusDiv.textContent = 'Connected';
+          statusDiv.className = 'status-indicator status-connected';
+          connectBtn.textContent = 'Disconnect';
+          logMessage('Connected to WebSocket server');
+        };
+
+        ws.onclose = () => {
+          statusDiv.textContent = 'Disconnected';
+          statusDiv.className = 'status-indicator status-disconnected';
+          connectBtn.textContent = 'Connect';
+          ws = null;
+          logMessage('Disconnected from WebSocket server');
+        };
+
+        ws.onmessage = (event) => {
+          logMessage(`Received: ${event.data}`);
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          statusDiv.textContent = 'Connection error';
+          statusDiv.className = 'status-indicator status-error';
+          logMessage('WebSocket connection error');
+        };
+      } catch (error) {
+        console.error('Connection error:', error);
+        statusDiv.textContent = 'Connection error';
+        statusDiv.className = 'status-indicator status-error';
+        logMessage(`Connection error: ${error.message}`);
+      }
+    });
+
+    function logMessage(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      receivedData.value += `[${timestamp}] ${message}\n`;
+      receivedData.scrollTop = receivedData.scrollHeight;
+    }
+
+    clearBtn.addEventListener('click', () => {
+      receivedData.value = '';
     });
 
     modalClose.addEventListener('click', () => modal.classList.remove('open'));
