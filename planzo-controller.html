@@ -45,9 +45,26 @@
                 <div class="order-1 lg:order-2 space-y-6">
                     
                     <!-- WiFi Configuration Section -->
-                    <div class="p-6 bg-purple-50 rounded-lg border border-purple-200">
+                    <!-- Connection Method Select -->
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+                        <label for="connectionMethod" class="text-gray-700 font-medium mr-2">Connection Method:</label>
+                        <select id="connectionMethod" class="px-2 py-1 border border-gray-300 rounded-lg">
+                            <option value="serial">Serial (Microcontroller)</option>
+                            <option value="wifi">WiFi</option>
+                        </select>
+                    </div>
+                    <!-- WiFi Configuration Section -->
+                    <div id="wifiSection" class="p-6 bg-purple-50 rounded-lg border border-purple-200" style="display:none;">
                         <h2 class="text-2xl font-bold text-purple-700 mb-4 text-center">📶 WiFi Settings</h2>
                         <form id="wifiForm" class="space-y-4">
+                            <div class="flex flex-col">
+                                <label class="text-gray-700 font-medium mb-1">Credential Slot</label>
+                                <select id="wifiSlot" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+                                    <option value="0">Slot 1</option>
+                                    <option value="1">Slot 2</option>
+                                    <option value="2">Slot 3</option>
+                                </select>
+                            </div>
                             <div class="flex flex-col">
                                 <label class="text-gray-700 font-medium mb-1">WiFi SSID (Network Name)</label>
                                 <input type="text" id="wifiSSID" required
@@ -126,6 +143,8 @@
             const configForm = document.getElementById('configForm');
             const wifiForm = document.getElementById('wifiForm');
             const wifiStatus = document.getElementById('wifiStatus');
+            const connectionMethod = document.getElementById('connectionMethod');
+            const wifiSection = document.getElementById('wifiSection');
 
             let port;
             let writer;
@@ -273,6 +292,7 @@
                 e.preventDefault();
                 const wifiData = {
                     type: 'wifi',
+                    slot: parseInt(document.getElementById('wifiSlot').value),
                     ssid: document.getElementById('wifiSSID').value,
                     password: document.getElementById('wifiPassword').value
                 };
@@ -333,6 +353,15 @@
             clearButton.addEventListener('click', () => {
                 receivedDataDisplay.innerHTML = '';
                 logToConsole('Console cleared');
+            });
+
+            // Toggle WiFi form visibility
+            connectionMethod.addEventListener('change', () => {
+              if (connectionMethod.value === 'wifi') {
+                wifiSection.style.display = 'block';
+              } else {
+                wifiSection.style.display = 'none';
+              }
             });
 
             // Initialize button states

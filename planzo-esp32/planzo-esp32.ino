@@ -5,23 +5,22 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <WiFi.h>
-#include <NTPClient.h>
-#include <WiFiUdp.h>
+#include <time.h>  // configTime and getLocalTime
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+// Buzzer pin
 #define BUZZER_PIN 2
 
-// WiFi and NTP setup
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // Update every minute
-String wifiSSID = "";
-String wifiPassword = "";
+// WiFi credential slots and time source
+#define WIFI_SLOTS 3
+String wifiSSIDs[WIFI_SLOTS];
+String wifiPasswords[WIFI_SLOTS];
 bool wifiConnected = false;
-bool ntpTimeAvailable = false;
+String timeSource = "PC";
 
 Preferences prefs;
 
@@ -41,82 +40,87 @@ unsigned long timerStartMillis = 0;
 void saveTimeToNVS();
 void playTone(int freq, int duration);
 
-// ====== WiFi and NTP Functions ======
-void connectToWiFi() {
-  if (wifiSSID == "" || wifiPassword == "") {
-    Serial.println("[WIFI] No credentials available");
-    return;
-  }
-  
-  Serial.printf("[WIFI] Connecting to %s...\n", wifiSSID.c_str());
-  WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
-  
-  unsigned long startTime = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startTime < 15000) {
-    delay(500);
-    Serial.print(".");
-  }
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    wifiConnected = true;
-    Serial.printf("\n[WIFI] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
-    
-    // Initialize NTP
-    timeClient.begin();
-    if (timeClient.update()) {
-      ntpTimeAvailable = true;
-      // Get time from NTP and set local clock
-      unsigned long epochTime = timeClient.getEpochTime();
-      struct tm *ptm = gmtime((time_t *)&epochTime);
-      
-      hours = ptm->tm_hour;
-      minutes = ptm->tm_min;
-      seconds = ptm->tm_sec;
-      
-      saveTimeToNVS();
-      Serial.printf("[NTP] Time synchronized: %02d:%02d:%02d\n", hours, minutes, seconds);
-      
-      // Play success tune
-      playTone(659, 150);
-      playTone(784, 150);
-      playTone(880, 200);
-    }
-  } else {
-    wifiConnected = false;
-    Serial.println("\n[WIFI] Connection failed");
-    
-    // Play failure tune
-    playTone(440, 200);
-    playTone(330, 200);
-  }
-}
-
-void updateNTPTime() {
-  if (wifiConnected && ntpTimeAvailable && timeClient.update()) {
-    unsigned long epochTime = timeClient.getEpochTime();
-    struct tm *ptm = gmtime((time_t *)&epochTime);
-    
-    hours = ptm->tm_hour;
-    minutes = ptm->tm_min;
-    seconds = ptm->tm_sec;
-    
-    saveTimeToNVS();
-    Serial.println("[NTP] Time updated from server");
-  }
-}
-
-void saveWiFiCredentials() {
-  prefs.begin("wifi", false);
-  prefs.putString("ssid", wifiSSID);
-  prefs.putString("password", wifiPassword);
-  prefs.end();
-}
-
+// ====== WiFi slot and time helpers ======
+// Load all WiFi credentials from NVS
 void loadWiFiCredentials() {
   prefs.begin("wifi", true);
-  wifiSSID = prefs.getString("ssid", "");
-  wifiPassword = prefs.getString("password", "");
+  for (int i = 0; i < WIFI_SLOTS; i++) {
+    char key[16];
+    snprintf(key, sizeof(key), "ssid%d", i);
+    wifiSSIDs[i] = prefs.getString(key, "");
+    snprintf(key, sizeof(key), "password%d", i);
+    wifiPasswords[i] = prefs.getString(key, "");
+  }
   prefs.end();
+  // Debug: show loaded WiFi slots
+  Serial.println("[WIFI] Loaded credentials:");
+  for (int i = 0; i < WIFI_SLOTS; i++) {
+    Serial.printf("  Slot %d: %s\n", i, wifiSSIDs[i].length() ? wifiSSIDs[i].c_str() : "<empty>");
+  }
+}
+
+// Save a single slot's credentials to NVS
+void saveWiFiCredential(int slot) {
+  prefs.begin("wifi", false);
+  char key[16];
+  snprintf(key, sizeof(key), "ssid%d", slot);
+  prefs.putString(key, wifiSSIDs[slot]);
+  snprintf(key, sizeof(key), "password%d", slot);
+  prefs.putString(key, wifiPasswords[slot]);
+  prefs.end();
+}
+
+// Attempt WiFi connections from stored slots
+void attemptWiFiConnections() {
+  struct tm tmTime;
+  // Debug: scan for available networks
+  Serial.println("[SCAN] Scanning for WiFi networks...");
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  int n = WiFi.scanNetworks();
+  Serial.printf("[SCAN] %d networks found\n", n);
+  for (int i = 0; i < n; i++) {
+    Serial.printf("  %d: %s (RSSI %d)\n", i, WiFi.SSID(i).c_str(), WiFi.RSSI(i));
+  }
+  // Prepare to attempt connections
+  for (int i = 0; i < WIFI_SLOTS; i++) {
+    if (wifiSSIDs[i].length() == 0) {
+      Serial.printf("[WIFI] Slot %d: empty, skipping\n", i);
+      continue;
+    }
+    // Check if SSID is in scan results
+    bool found = false;
+    for (int j = 0; j < n; j++) {
+      if (WiFi.SSID(j) == wifiSSIDs[i]) {
+        found = true;
+        break;
+      }
+    }
+    Serial.printf("[WIFI] Slot %d: SSID '%s' %s\n", i, wifiSSIDs[i].c_str(), found ? "found" : "not found");
+    Serial.printf("[WIFI] Attempting slot %d connection...\n", i);
+    WiFi.begin(wifiSSIDs[i].c_str(), wifiPasswords[i].c_str());
+    unsigned long start = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
+      delay(500);
+      Serial.print('.');
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+      wifiConnected = true;
+      timeSource = "WiFi";
+      Serial.printf("\n[WIFI] Connected slot %d! IP: %s\n", i, WiFi.localIP().toString().c_str());
+      configTime(0, 0, "pool.ntp.org");
+      if (getLocalTime(&tmTime)) {
+        hours = tmTime.tm_hour; minutes = tmTime.tm_min; seconds = tmTime.tm_sec;
+        saveTimeToNVS();
+        Serial.printf("[TIME][%s] %02d:%02d:%02d\n", timeSource.c_str(), hours, minutes, seconds);
+      }
+      return;
+    }
+    Serial.println("\n[WIFI] Slot connection failed");
+  }
+  wifiConnected = false;
+  timeSource = "PC";
+  Serial.println("[WIFI] No slot connected; will sync via PC only");
 }
 
 // ====== Helper: Play Tunes ======
@@ -164,7 +168,7 @@ void showClock() {
   if (wifiConnected) {
     display.print("WiFi");
     display.setCursor(100, 8);
-    if (ntpTimeAvailable) {
+    if (timeSource == "WiFi") {
       display.print("NTP");
     }
   }
@@ -243,7 +247,7 @@ void printStatus() {
     Serial.printf(" (IP: %s)", WiFi.localIP().toString().c_str());
   }
   Serial.println();
-  Serial.printf("NTP Time: %s\n", ntpTimeAvailable ? "Available" : "Not Available");
+  Serial.printf("Time Source: %s\n", timeSource.c_str());
   Serial.println("==============");
 }
 
@@ -273,13 +277,10 @@ void setup() {
   display.clearDisplay();
   display.display();
 
-  loadTimeFromNVS();
-  loadWiFiCredentials();
-  
-  // Attempt WiFi connection if credentials exist
-  if (wifiSSID != "" && wifiPassword != "") {
-    connectToWiFi();
-  }
+    loadTimeFromNVS();
+    loadWiFiCredentials();
+    // Attempt connections from stored slots
+    attemptWiFiConnections();
   
   Serial.println("System started. Ready to receive data.");
   printStatus();
@@ -303,8 +304,10 @@ void loop() {
     }
     saveTimeToNVS();
 
-    // Update OLED
-    showClock();
+  // Update OLED
+  showClock();
+  // Print clock to serial with time source
+  Serial.printf("[TIME][%s] %02d:%02d:%02d\n", timeSource.c_str(), hours, minutes, seconds);
 
     // Check alarm
     if (hours == alarmHour && minutes == alarmMinute && seconds == 0) {
@@ -323,13 +326,7 @@ void loop() {
       }
     }
     
-    // Update NTP time every 5 minutes
-    static int ntpUpdateCounter = 0;
-    ntpUpdateCounter++;
-    if (ntpUpdateCounter >= 300) { // 300 seconds = 5 minutes
-      ntpUpdateCounter = 0;
-      updateNTPTime();
-    }
+    // (No periodic NTP client updates; time via WiFi slot or PC sync)
   }
 
   // Read serial input
@@ -348,24 +345,17 @@ void loop() {
     const char* type = doc["type"];
 
     if (strcmp(type, "wifi") == 0) {
-      wifiSSID = doc["ssid"] | "";
-      wifiPassword = doc["password"] | "";
-      
-      if (wifiSSID != "" && wifiPassword != "") {
-        saveWiFiCredentials();
-        Serial.printf("[WIFI] Credentials received for: %s\n", wifiSSID.c_str());
-        
-        // Disconnect existing WiFi if connected
-        if (WiFi.status() == WL_CONNECTED) {
-          WiFi.disconnect();
-          wifiConnected = false;
-          ntpTimeAvailable = false;
-        }
-        
-        // Attempt new connection
-        connectToWiFi();
+      int slot = doc["slot"] | -1;
+      const char* ssid = doc["ssid"] | "";
+      const char* pass = doc["password"] | "";
+      if (slot >= 0 && slot < WIFI_SLOTS && strlen(ssid) > 0 && strlen(pass) > 0) {
+        wifiSSIDs[slot] = String(ssid);
+        wifiPasswords[slot] = String(pass);
+        saveWiFiCredential(slot);
+        Serial.printf("[WIFI] Slot %d credentials saved: %s\n", slot, ssid);
+        attemptWiFiConnections();
       } else {
-        Serial.println("[WIFI] Invalid credentials received");
+        Serial.println("[WIFI] Invalid slot or credentials");
       }
     }
     else if (strcmp(type, "sync") == 0) {
