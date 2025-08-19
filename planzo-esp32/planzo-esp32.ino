@@ -1,283 +1,413 @@
-#include <WiFi.h>
-#include <WebServer.h>
+#include <Arduino.h>
 #include <Preferences.h>
+#include <ArduinoJson.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <ArduinoJson.h>
-#include <TimeLib.h>
+#include <WiFi.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
-// OLED Setup
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
-#define OLED_RESET    -1
+#define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-// NVS Storage
+#define BUZZER_PIN 2
+
+// WiFi and NTP setup
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // Update every minute
+String wifiSSID = "";
+String wifiPassword = "";
+bool wifiConnected = false;
+bool ntpTimeAvailable = false;
+
 Preferences prefs;
 
-// Time management
-struct TimeKeeper {
-    int hours = 0;
-    int minutes = 0;
-    int seconds = 0;
-    unsigned long lastMillis = 0;
+// Clock state
+unsigned long lastMillis = 0;
+int hours = 0, minutes = 0, seconds = 0;
 
-    void update() {
-        unsigned long currentMillis = millis();
-        unsigned long elapsed = currentMillis - lastMillis;
-        
-        if (elapsed >= 1000) {  // One second has passed
-            seconds += elapsed / 1000;
-            lastMillis = currentMillis;
-            
-            if (seconds >= 60) {
-                minutes += seconds / 60;
-                seconds %= 60;
-                
-                if (minutes >= 60) {
-                    hours += minutes / 60;
-                    minutes %= 60;
-                    
-                    if (hours >= 24) {
-                        hours %= 24;
-                    }
-                }
-            }
-        }
+// Stored settings
+int alarmHour = -1, alarmMinute = -1;
+int studyDuration = 25; // minutes
+String reminderMsg = "";
+bool timerRunning = false;
+bool timerPaused = false;
+unsigned long timerStartMillis = 0;
+
+// Forward declarations
+void saveTimeToNVS();
+void playTone(int freq, int duration);
+
+// ====== WiFi and NTP Functions ======
+void connectToWiFi() {
+  if (wifiSSID == "" || wifiPassword == "") {
+    Serial.println("[WIFI] No credentials available");
+    return;
+  }
+  
+  Serial.printf("[WIFI] Connecting to %s...\n", wifiSSID.c_str());
+  WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
+  
+  unsigned long startTime = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - startTime < 15000) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    wifiConnected = true;
+    Serial.printf("\n[WIFI] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+    
+    // Initialize NTP
+    timeClient.begin();
+    if (timeClient.update()) {
+      ntpTimeAvailable = true;
+      // Get time from NTP and set local clock
+      unsigned long epochTime = timeClient.getEpochTime();
+      struct tm *ptm = gmtime((time_t *)&epochTime);
+      
+      hours = ptm->tm_hour;
+      minutes = ptm->tm_min;
+      seconds = ptm->tm_sec;
+      
+      saveTimeToNVS();
+      Serial.printf("[NTP] Time synchronized: %02d:%02d:%02d\n", hours, minutes, seconds);
+      
+      // Play success tune
+      playTone(659, 150);
+      playTone(784, 150);
+      playTone(880, 200);
     }
+  } else {
+    wifiConnected = false;
+    Serial.println("\n[WIFI] Connection failed");
+    
+    // Play failure tune
+    playTone(440, 200);
+    playTone(330, 200);
+  }
+}
 
-    void setTime(int h, int m, int s) {
-        hours = h;
-        minutes = m;
-        seconds = s;
-        lastMillis = millis();
+void updateNTPTime() {
+  if (wifiConnected && ntpTimeAvailable && timeClient.update()) {
+    unsigned long epochTime = timeClient.getEpochTime();
+    struct tm *ptm = gmtime((time_t *)&epochTime);
+    
+    hours = ptm->tm_hour;
+    minutes = ptm->tm_min;
+    seconds = ptm->tm_sec;
+    
+    saveTimeToNVS();
+    Serial.println("[NTP] Time updated from server");
+  }
+}
+
+void saveWiFiCredentials() {
+  prefs.begin("wifi", false);
+  prefs.putString("ssid", wifiSSID);
+  prefs.putString("password", wifiPassword);
+  prefs.end();
+}
+
+void loadWiFiCredentials() {
+  prefs.begin("wifi", true);
+  wifiSSID = prefs.getString("ssid", "");
+  wifiPassword = prefs.getString("password", "");
+  prefs.end();
+}
+
+// ====== Helper: Play Tunes ======
+void playTone(int freq, int duration) {
+  tone(BUZZER_PIN, freq, duration);
+  delay(duration * 1.3);
+  noTone(BUZZER_PIN);
+}
+
+void playWelcomeTune() {
+  playTone(880, 200);
+  playTone(988, 200);
+  playTone(1046, 300);
+}
+
+void playRebootTune() {
+  playTone(988, 200);
+  playTone(880, 200);
+}
+
+void playAlarmTune() {
+  for (int i = 0; i < 3; i++) {
+    playTone(1046, 200);
+    playTone(880, 200);
+  }
+}
+
+void playTimerCompleteTune() {
+  playTone(523, 200);
+  playTone(659, 200);
+  playTone(784, 300);
+}
+
+// ====== OLED Functions ======
+void showClock() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(10, 0);
+  display.printf("%02d:%02d:%02d", hours, minutes, seconds);
+
+  // WiFi status indicator
+  display.setTextSize(1);
+  display.setCursor(100, 0);
+  if (wifiConnected) {
+    display.print("WiFi");
+    display.setCursor(100, 8);
+    if (ntpTimeAvailable) {
+      display.print("NTP");
     }
+  }
 
-    String getTimeString() {
-        char timeStr[9];
-        snprintf(timeStr, sizeof(timeStr), "%02d:%02d:%02d", hours, minutes, seconds);
-        return String(timeStr);
-    }
-} timeKeeper;
+  display.setCursor(0, 24);
+  display.print("Reminder:");
+  display.setCursor(0, 34);
+  display.print(reminderMsg);
 
-// User Config
-struct Config {
-    char alarmTime[6];     // HH:MM
-    int studyDuration;     // Minutes
-    char reminder[128];    // Reminder message
-    bool timerActive;      // Is timer running?
-    int timeRemaining;     // Seconds remaining in current session
-};
-Config userConfig;
+  if (timerRunning) {
+    unsigned long elapsed = (millis() - timerStartMillis) / 1000;
+    int remain = (studyDuration * 60) - elapsed;
+    int mm = remain / 60, ss = remain % 60;
+    display.setCursor(0, 54);
+    display.printf("Timer: %02d:%02d", mm, ss);
+  }
 
-// Timer States
-enum TimerState {
-    STOPPED,
-    RUNNING,
-    PAUSED
-} timerState = STOPPED;
+  display.display();
+}
 
-unsigned long timerLastUpdate = 0;
-
-// ========== OLED HELPERS ==========
-void initOLED() {
-    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-        Serial.println("SSD1306 allocation failed");
-        for (;;);  // Don't proceed
-    }
+void showAlarmAnimation() {
+  for (int i = 0; i < 5; i++) {
     display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
+    display.setTextSize(2);
+    display.setCursor(20, 20);
+    display.print("ALARM!");
     display.display();
-}
+    delay(300);
 
-void showOLEDMessage(const String& line1, const String& line2 = "", const String& line3 = "") {
     display.clearDisplay();
-    display.setCursor(0, 0);
-    display.println(line1);
-    if (line2 != "") {
-        display.setCursor(0, 16);
-        display.println(line2);
-    }
-    if (line3 != "") {
-        display.setCursor(0, 32);
-        display.println(line3);
-    }
     display.display();
+    delay(300);
+  }
 }
 
-void updateOLEDStatus() {
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.println("Time: " + timeKeeper.getTimeString());
-    
-    display.setCursor(0, 16);
-    display.print("Alarm: ");
-    display.println(userConfig.alarmTime);
-    
-    if (timerState != STOPPED) {
-        display.setCursor(0, 32);
-        int mins = userConfig.timeRemaining / 60;
-        int secs = userConfig.timeRemaining % 60;
-        display.printf("Remaining: %02d:%02d", mins, secs);
-        
-        display.setCursor(0, 48);
-        display.print(timerState == RUNNING ? "RUNNING" : "PAUSED");
-    } else {
-        display.setCursor(0, 32);
-        display.printf("Duration: %d min", userConfig.studyDuration);
-    }
-    
-    display.display();
+// ====== NVS Helpers ======
+void saveTimeToNVS() {
+  prefs.begin("clock", false);
+  prefs.putInt("hours", hours);
+  prefs.putInt("minutes", minutes);
+  prefs.putInt("seconds", seconds);
+  prefs.end();
 }
 
-// ========== NVS HELPERS ==========
-void loadConfig() {
-    prefs.begin("studykit", true);
-    strncpy(userConfig.alarmTime, prefs.getString("alarm", "07:30").c_str(), 6);
-    userConfig.studyDuration = prefs.getInt("duration", 25);
-    strncpy(userConfig.reminder, prefs.getString("reminder", "").c_str(), 128);
-    userConfig.timerActive = false;
-    userConfig.timeRemaining = userConfig.studyDuration * 60;
-    prefs.end();
+void loadTimeFromNVS() {
+  prefs.begin("clock", true);
+  hours = prefs.getInt("hours", 0);
+  minutes = prefs.getInt("minutes", 0);
+  seconds = prefs.getInt("seconds", 0);
+  alarmHour = prefs.getInt("alarmHour", -1);
+  alarmMinute = prefs.getInt("alarmMinute", -1);
+  studyDuration = prefs.getInt("studyDuration", 25);
+  reminderMsg = prefs.getString("reminderMsg", "");
+  prefs.end();
 }
 
-void saveConfig() {
-    prefs.begin("studykit", false);
-    prefs.putString("alarm", userConfig.alarmTime);
-    prefs.putInt("duration", userConfig.studyDuration);
-    prefs.putString("reminder", userConfig.reminder);
-    prefs.end();
-    
-    Serial.println("Config saved:");
-    Serial.printf("Alarm: %s\n", userConfig.alarmTime);
-    Serial.printf("Duration: %d min\n", userConfig.studyDuration);
-    Serial.printf("Reminder: %s\n", userConfig.reminder);
+void saveConfigToNVS() {
+  prefs.begin("clock", false);
+  prefs.putInt("alarmHour", alarmHour);
+  prefs.putInt("alarmMinute", alarmMinute);
+  prefs.putInt("studyDuration", studyDuration);
+  prefs.putString("reminderMsg", reminderMsg);
+  prefs.end();
 }
 
-// ========== TIMER MANAGEMENT ==========
-void updateTimer() {
-    if (timerState == RUNNING) {
-        unsigned long now = millis();
-        if (now - timerLastUpdate >= 1000) {  // Update every second
-            userConfig.timeRemaining--;
-            timerLastUpdate = now;
-            
-            if (userConfig.timeRemaining <= 0) {
-                timerState = STOPPED;
-                showOLEDMessage("Time's Up!", userConfig.reminder);
-                delay(2000);  // Show message for 2 seconds
-            }
-            updateOLEDStatus();
-        }
-    }
+void printStatus() {
+  Serial.println("=== STATUS ===");
+  Serial.printf("Clock: %02d:%02d:%02d\n", hours, minutes, seconds);
+  Serial.printf("Alarm: %02d:%02d\n", alarmHour, alarmMinute);
+  Serial.printf("Study Duration: %d mins\n", studyDuration);
+  Serial.printf("Reminder: %s\n", reminderMsg.c_str());
+  Serial.printf("Timer: %s %s\n", timerRunning ? "Running" : "Stopped",
+                timerPaused ? "(Paused)" : "");
+  Serial.printf("WiFi: %s", wifiConnected ? "Connected" : "Disconnected");
+  if (wifiConnected) {
+    Serial.printf(" (IP: %s)", WiFi.localIP().toString().c_str());
+  }
+  Serial.println();
+  Serial.printf("NTP Time: %s\n", ntpTimeAvailable ? "Available" : "Not Available");
+  Serial.println("==============");
 }
 
-void handleTimerCommand(const char* command) {
-    if (strcmp(command, "START") == 0) {
-        if (timerState == STOPPED) {
-            userConfig.timeRemaining = userConfig.studyDuration * 60;
-        }
-        timerState = RUNNING;
-        timerLastUpdate = millis();
-    }
-    else if (strcmp(command, "STOP") == 0) {
-        timerState = STOPPED;
-        userConfig.timeRemaining = userConfig.studyDuration * 60;
-    }
-    else if (strcmp(command, "PAUSE") == 0) {
-        if (timerState == RUNNING) {
-            timerState = PAUSED;
-        } else if (timerState == PAUSED) {
-            timerState = RUNNING;
-            timerLastUpdate = millis();
-        }
-    }
-    else if (strcmp(command, "SHOW") == 0) {
-        // Status is always shown by updateOLEDStatus
-    }
-    updateOLEDStatus();
-}
-
-// ========== SERIAL COMMUNICATION ==========
-void handleSerialJson() {
-    if (Serial.available()) {
-        String jsonStr = Serial.readStringUntil('\n');
-        StaticJsonDocument<512> doc;
-        DeserializationError error = deserializeJson(doc, jsonStr);
-        
-        if (error) {
-            Serial.print("deserializeJson() failed: ");
-            Serial.println(error.c_str());
-            return;
-        }
-
-        // Handle device time synchronization
-        if (doc.containsKey("deviceTime")) {
-            timeKeeper.setTime(
-                doc["deviceTime"]["hours"],
-                doc["deviceTime"]["minutes"],
-                doc["deviceTime"]["seconds"]
-            );
-        }
-
-        // Handle message types
-        const char* type = doc["type"];
-        
-        if (strcmp(type, "config") == 0) {
-            // Update configuration
-            strncpy(userConfig.alarmTime, doc["alarmTime"], 6);
-            userConfig.studyDuration = doc["studyDuration"];
-            strncpy(userConfig.reminder, doc["reminder"], 128);
-            saveConfig();
-            
-            // Send confirmation
-            Serial.println("{\"status\":\"config_updated\"}");
-            showOLEDMessage("Config Updated!", userConfig.alarmTime);
-            delay(1000);
-        }
-        else if (strcmp(type, "command") == 0) {
-            const char* action = doc["action"];
-            handleTimerCommand(action);
-            
-            // Send confirmation
-            Serial.printf("{\"status\":\"command_executed\",\"command\":\"%s\"}\n", action);
-        }
-        else if (strcmp(type, "sync") == 0) {
-            // Time sync is handled above with deviceTime
-            Serial.println("{\"status\":\"time_synced\"}");
-        }
-    }
-}
-
-// ========== MAIN ==========
+// ====== MAIN ======
 void setup() {
-    Serial.begin(9600);
-    Wire.begin(6, 7);  // SDA=6, SCL=7
-    Wire.setClock(50000);  // 50kHz
-    
-    initOLED();
-    loadConfig();
-    
-    showOLEDMessage("PLanzo Ready!", "Waiting for", "connection...");
-    Serial.println("{\"status\":\"ready\"}");
+  Serial.begin(9600);
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  // === OLED init (from working sketch) ===
+  Wire.begin(6, 7);       // SDA = 6, SCL = 7
+  Wire.setClock(50000);   // Slow I2C for stability
+
+  bool oled_ok = false;
+  for (int i = 0; i < 3; i++) {
+    if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+      oled_ok = true;
+      break;
+    }
+    delay(100);
+  }
+
+  if (!oled_ok) {
+    Serial.println("OLED failed!");
+    while (1);
+  }
+
+  display.clearDisplay();
+  display.display();
+
+  loadTimeFromNVS();
+  loadWiFiCredentials();
+  
+  // Attempt WiFi connection if credentials exist
+  if (wifiSSID != "" && wifiPassword != "") {
+    connectToWiFi();
+  }
+  
+  Serial.println("System started. Ready to receive data.");
+  printStatus();
+
+  playWelcomeTune();
 }
 
 void loop() {
-    timeKeeper.update();  // Update internal time
-    updateTimer();        // Update study timer if running
-    handleSerialJson();   // Handle incoming serial commands
-    
-    // Check for alarm
-    if (timeKeeper.minutes == 0 && timeKeeper.seconds == 0) {  // Check every hour
-        char currentTime[6];
-        snprintf(currentTime, 6, "%02d:%02d", timeKeeper.hours, timeKeeper.minutes);
-        
-        if (strcmp(currentTime, userConfig.alarmTime) == 0) {
-            showOLEDMessage("ALARM!", userConfig.alarmTime, userConfig.reminder);
-            delay(5000);  // Show alarm for 5 seconds
-        }
+  // Tick clock
+  if (millis() - lastMillis >= 1000) {
+    lastMillis = millis();
+    seconds++;
+    if (seconds >= 60) {
+      seconds = 0;
+      minutes++;
+      if (minutes >= 60) {
+        minutes = 0;
+        hours++;
+        if (hours >= 24) hours = 0;
+      }
     }
+    saveTimeToNVS();
+
+    // Update OLED
+    showClock();
+
+    // Check alarm
+    if (hours == alarmHour && minutes == alarmMinute && seconds == 0) {
+      Serial.println("[ALARM] Triggered!");
+      showAlarmAnimation();
+      playAlarmTune();
+    }
+
+    // Check study timer
+    if (timerRunning && !timerPaused) {
+      unsigned long elapsed = (millis() - timerStartMillis) / 1000;
+      if (elapsed >= (unsigned long)studyDuration * 60) {
+        timerRunning = false;
+        Serial.println("[TIMER] Study session complete!");
+        playTimerCompleteTune();
+      }
+    }
+    
+    // Update NTP time every 5 minutes
+    static int ntpUpdateCounter = 0;
+    ntpUpdateCounter++;
+    if (ntpUpdateCounter >= 300) { // 300 seconds = 5 minutes
+      ntpUpdateCounter = 0;
+      updateNTPTime();
+    }
+  }
+
+  // Read serial input
+  if (Serial.available()) {
+    String json = Serial.readStringUntil('\n');
+    json.trim();
+    if (json.length() == 0) return;
+
+    StaticJsonDocument<512> doc;
+    DeserializationError err = deserializeJson(doc, json);
+    if (err) {
+      Serial.println("[ERROR] Invalid JSON.");
+      return;
+    }
+
+    const char* type = doc["type"];
+
+    if (strcmp(type, "wifi") == 0) {
+      wifiSSID = doc["ssid"] | "";
+      wifiPassword = doc["password"] | "";
+      
+      if (wifiSSID != "" && wifiPassword != "") {
+        saveWiFiCredentials();
+        Serial.printf("[WIFI] Credentials received for: %s\n", wifiSSID.c_str());
+        
+        // Disconnect existing WiFi if connected
+        if (WiFi.status() == WL_CONNECTED) {
+          WiFi.disconnect();
+          wifiConnected = false;
+          ntpTimeAvailable = false;
+        }
+        
+        // Attempt new connection
+        connectToWiFi();
+      } else {
+        Serial.println("[WIFI] Invalid credentials received");
+      }
+    }
+    else if (strcmp(type, "sync") == 0) {
+      hours = doc["deviceTime"]["hours"] | hours;
+      minutes = doc["deviceTime"]["minutes"] | minutes;
+      seconds = doc["deviceTime"]["seconds"] | seconds;
+      saveTimeToNVS();
+      Serial.printf("[SYNC] Clock set to %02d:%02d:%02d\n", hours, minutes, seconds);
+    }
+    else if (strcmp(type, "config") == 0) {
+      String alarm = doc["alarmTime"] | "";
+      if (alarm.length() > 0) {
+        sscanf(alarm.c_str(), "%d:%d", &alarmHour, &alarmMinute);
+      }
+      studyDuration = doc["studyDuration"] | studyDuration;
+      reminderMsg = doc["reminder"] | reminderMsg;
+      saveConfigToNVS();
+      Serial.println("[CONFIG] Saved configuration:");
+      printStatus();
+    }
+    else if (strcmp(type, "command") == 0) {
+      String action = doc["action"] | "";
+      if (action == "START") {
+        timerRunning = true;
+        timerPaused = false;
+        timerStartMillis = millis();
+        Serial.println("[CMD] Timer started.");
+      }
+      else if (action == "STOP") {
+        timerRunning = false;
+        timerPaused = false;
+        Serial.println("[CMD] Timer stopped.");
+      }
+      else if (action == "PAUSE") {
+        if (timerRunning) {
+          timerPaused = !timerPaused;
+          Serial.printf("[CMD] Timer %s.\n", timerPaused ? "paused" : "resumed");
+        }
+      }
+      else if (action == "SHOW") {
+        printStatus();
+      }
+    }
+  }
 }
