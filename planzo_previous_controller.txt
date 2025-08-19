@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLanzo Controller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="flex flex-col items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">🤖 PLanzo Controller 📝</h1>
+
+            <!-- Connection Section -->
+            <div class="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4 text-center">Connection Status</h2>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="connectButton" class="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
+                        Connect to Microcontroller
+                    </button>
+                    <button id="disconnectButton" disabled class="flex-1 px-6 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600">
+                        Disconnect
+                    </button>
+                </div>
+                <p id="statusMessage" class="mt-4 text-center text-gray-700 font-medium"></p>
+            </div>
+
+            <!-- Study Config Section -->
+            <div class="mb-8 p-6 bg-green-50 rounded-lg border border-green-200">
+                <h2 class="text-2xl font-bold text-green-700 mb-4 text-center">Study Configuration</h2>
+                <form id="configForm" class="space-y-4">
+                    <div class="flex flex-col">
+                        <label class="text-gray-700 font-medium mb-1">Alarm Time (HH:MM)</label>
+                        <input type="time" id="alarmTime" required
+                            class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-gray-700 font-medium mb-1">Study Duration (minutes)</label>
+                        <input type="number" id="studyDuration" required min="1" max="180" value="25"
+                            class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-gray-700 font-medium mb-1">Reminder Note</label>
+                        <input type="text" id="reminder" maxlength="128" placeholder="Optional reminder message"
+                            class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    </div>
+                    <button type="submit" class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
+                        Save Configuration ✨
+                    </button>
+                </form>
+            </div>
+
+            <!-- Commands Section -->
+            <div class="mb-8 p-6 bg-indigo-50 rounded-lg border border-indigo-200">
+                <h2 class="text-2xl font-bold text-indigo-700 mb-4 text-center">Quick Commands</h2>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button class="command-button px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700" data-command="START">
+                        Start Timer ▶️
+                    </button>
+                    <button class="command-button px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700" data-command="STOP">
+                        Stop Timer ⏹️
+                    </button>
+                    <button class="command-button px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-700" data-command="PAUSE">
+                        Pause Timer ⏸️
+                    </button>
+                    <button class="command-button px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700" data-command="SHOW">
+                        Show Status �
+                    </button>
+                </div>
+            </div>
+
+            <!-- Serial Data Display Section -->
+            <div class="p-6 bg-gray-800 rounded-lg border border-gray-700" style="max-height: 400px; overflow-y: auto;">
+                <h2 class="text-2xl font-bold text-gray-200 mb-4 text-center">Received Serial Data</h2>
+                <div class="scroll-container bg-gray-900 rounded-lg p-4" style="max-height: 300px; overflow-y: auto;">
+                    <pre id="receivedData" class="text-sm leading-relaxed whitespace-pre-wrap text-white"></pre>
+                </div>
+                <button id="clearButton" class="mt-4 px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 w-full">
+                    Clear Console
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const connectButton = document.getElementById('connectButton');
+            const disconnectButton = document.getElementById('disconnectButton');
+            const statusMessage = document.getElementById('statusMessage');
+            const receivedDataDisplay = document.getElementById('receivedData');
+            const clearButton = document.getElementById('clearButton');
+            const commandButtons = document.querySelectorAll('.command-button');
+            const configForm = document.getElementById('configForm');
+
+            let port;
+            let writer;
+            let reader;
+            let keepReading = true;
+            let encoder = new TextEncoder();
+
+            function updateConnectionButtons(connected) {
+                connectButton.disabled = connected;
+                disconnectButton.disabled = !connected;
+                commandButtons.forEach(btn => btn.disabled = !connected);
+                const submitBtn = configForm.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = !connected;
+            }
+
+            async function writeToSerial(data) {
+                if (!port) return;
+                
+                try {
+                    if (!writer) {
+                        writer = port.writable.getWriter();
+                    }
+                    // Add current device time to all messages
+                    const now = new Date();
+                    data.deviceTime = {
+                        hours: now.getHours(),
+                        minutes: now.getMinutes(),
+                        seconds: now.getSeconds()
+                    };
+                    
+                    const dataToSend = JSON.stringify(data) + '\n';
+                    await writer.write(encoder.encode(dataToSend));
+                    receivedDataDisplay.textContent += `\nSent: ${dataToSend}`;
+                    receivedDataDisplay.scrollTop = receivedDataDisplay.scrollHeight;
+
+                    // Release and re-acquire the writer to ensure data is sent
+                    writer.releaseLock();
+                    writer = null;
+                } catch (error) {
+                    console.error('Error writing to serial:', error);
+                    statusMessage.textContent = `Write Error: ${error.message}`;
+                }
+            }
+
+            async function readSerialData() {
+                while (port && keepReading) {
+                    try {
+                        const { value, done } = await reader.read();
+                        if (done) {
+                            reader.releaseLock();
+                            break;
+                        }
+                        const text = new TextDecoder().decode(value);
+                        receivedDataDisplay.textContent += text;
+                        receivedDataDisplay.scrollTop = receivedDataDisplay.scrollHeight;
+                    } catch (error) {
+                        console.error('Error reading serial:', error);
+                        break;
+                    }
+                }
+            }
+
+            connectButton.addEventListener('click', async () => {
+                if (!('serial' in navigator)) {
+                    statusMessage.textContent = 'Web Serial API not supported in this browser';
+                    return;
+                }
+
+                try {
+                    port = await navigator.serial.requestPort();
+                    await port.open({ baudRate: 9600 }); // Match your ESP32 baud rate
+                    reader = port.readable.getReader();
+                    updateConnectionButtons(true);
+                    statusMessage.textContent = 'Connected!';
+                    keepReading = true;
+                    readSerialData();
+
+                    // Send initial time sync message
+                    await writeToSerial({
+                        type: 'sync',
+                        deviceTime: {
+                            hours: new Date().getHours(),
+                            minutes: new Date().getMinutes(),
+                            seconds: new Date().getSeconds()
+                        }
+                    });
+
+                    // Start periodic time sync
+                    setInterval(async () => {
+                        if (port) {
+                            await writeToSerial({
+                                type: 'sync',
+                                deviceTime: {
+                                    hours: new Date().getHours(),
+                                    minutes: new Date().getMinutes(),
+                                    seconds: new Date().getSeconds()
+                                }
+                            });
+                        }
+                    }, 60000); // Sync every minute
+                } catch (error) {
+                    statusMessage.textContent = `Error: ${error.message}`;
+                }
+            });
+
+            disconnectButton.addEventListener('click', async () => {
+                if (reader) {
+                    keepReading = false;
+                    reader.cancel();
+                }
+                if (writer) {
+                    writer.releaseLock();
+                    writer = null;
+                }
+                if (port) {
+                    await port.close();
+                }
+                updateConnectionButtons(false);
+                statusMessage.textContent = 'Disconnected';
+            });
+
+            // Handle config form submission
+            configForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const config = {
+                    type: 'config',
+                    alarmTime: document.getElementById('alarmTime').value,
+                    studyDuration: parseInt(document.getElementById('studyDuration').value),
+                    reminder: document.getElementById('reminder').value || ''
+                };
+                
+                // Send configuration multiple times to ensure delivery
+                for (let i = 0; i < 3; i++) {
+                    await writeToSerial(config);
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms between retries
+                }
+
+                statusMessage.textContent = 'Configuration sent!';
+                setTimeout(() => {
+                    if (statusMessage.textContent === 'Configuration sent!') {
+                        statusMessage.textContent = 'Connected!';
+                    }
+                }, 2000);
+            });
+
+            // Handle command buttons
+            commandButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    const command = {
+                        type: 'command',
+                        action: button.dataset.command
+                    };
+                    await writeToSerial(command);
+                });
+            });
+
+            clearButton.addEventListener('click', () => {
+                receivedDataDisplay.textContent = '';
+            });
+
+            // Initialize button states
+            updateConnectionButtons(false);
+        });
+    </script>
+</body>
+</html>
