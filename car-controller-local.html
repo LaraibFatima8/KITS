@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Controller (Local)</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --surface: #111827;
+            --text: #e5e7eb;
+            --accent: #8b5cf6;
+            --accent-2: #22d3ee;
+        }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: var(--accent);
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #1f2937;
+            border-radius: 8px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .status.connected {
+            color: #10b981;
+        }
+        .status.disconnected {
+            color: #ef4444;
+        }
+        .connection-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background: #1f2937;
+            color: white;
+        }
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mode-buttons .btn {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Smart Car Controller</h1>
+        
+        <div class="card">
+            <h2>Connection</h2>
+            <div class="connection-form">
+                <input type="text" id="ipInput" value="192.168.4.1" placeholder="Enter IP address">
+                <button id="connectBtn" class="btn">Connect</button>
+            </div>
+            <div id="status" class="status disconnected">Disconnected</div>
+        </div>
+
+        <div class="card">
+            <h2>Mode</h2>
+            <div class="mode-buttons">
+                <button class="btn" data-command="MODE_FOLLOWER">Follower Mode 🚶</button>
+                <button class="btn" data-command="MODE_REMOTE">Remote Control 🎮</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Controls</h2>
+            <div class="controls">
+                <button class="btn" style="visibility: hidden"></button>
+                <button class="btn" data-command="FORWARD">Forward ⬆️</button>
+                <button class="btn" style="visibility: hidden"></button>
+                
+                <button class="btn" data-command="LEFT">Left ⬅️</button>
+                <button class="btn" data-command="STOP">Stop 🛑</button>
+                <button class="btn" data-command="RIGHT">Right ➡️</button>
+                
+                <button class="btn" style="visibility: hidden"></button>
+                <button class="btn" data-command="BACKWARD">Backward ⬇️</button>
+                <button class="btn" style="visibility: hidden"></button>
+            </div>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const connectBtn = document.getElementById('connectBtn');
+        const ipInput = document.getElementById('ipInput');
+        const status = document.getElementById('status');
+        const log = document.getElementById('log');
+        const buttons = document.querySelectorAll('[data-command]');
+        
+        let ws = null;
+
+        function logMessage(message) {
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `[${time}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateButtons(enabled) {
+            buttons.forEach(btn => btn.disabled = !enabled);
+        }
+
+        function updateStatus(connected) {
+            status.textContent = connected ? 'Connected' : 'Disconnected';
+            status.className = `status ${connected ? 'connected' : 'disconnected'}`;
+            connectBtn.textContent = connected ? 'Disconnect' : 'Connect';
+            updateButtons(connected);
+        }
+
+        function connect() {
+            if (ws) {
+                ws.close();
+                return;
+            }
+
+            const ip = ipInput.value;
+            try {
+                ws = new WebSocket(`ws://${ip}/ws`);
+                
+                ws.onopen = () => {
+                    updateStatus(true);
+                    logMessage('Connected successfully');
+                };
+
+                ws.onclose = () => {
+                    ws = null;
+                    updateStatus(false);
+                    logMessage('Disconnected');
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    logMessage('Connection error');
+                    ws = null;
+                    updateStatus(false);
+                };
+
+                ws.onmessage = (event) => {
+                    logMessage(`Received: ${event.data}`);
+                };
+
+            } catch (error) {
+                logMessage(`Connection error: ${error.message}`);
+                updateStatus(false);
+            }
+        }
+
+        connectBtn.addEventListener('click', connect);
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (!ws) return;
+                const command = button.dataset.command;
+                ws.send(command);
+                logMessage(`Sent: ${command}`);
+            });
+        });
+
+        // Initialize
+        updateStatus(false);
+        updateButtons(false);
+    </script>
+</body>
+</html>
