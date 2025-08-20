@@ -287,9 +287,119 @@
             <hr>
 
             <div class="section">
-                <h2>💻 Bringing Your Arm to Life! (The Code)</h2>
-                <p>This Arduino code will enable you to control the robotic arm using the connected joystick module. Before uploading, you will need to install the <b>Adafruit PWM Servo Driver Library</b> in your Arduino IDE (navigate to `Sketch > Include Library > Manage Libraries...` and search for "Adafruit PWM Servo Driver").</p>
-                <p>Once the library is installed, upload this code to your Arduino UNO. Ensure you have selected the correct Board (`Arduino Uno`) and Port in the Arduino IDE's "Tools" menu before clicking the Upload button.</p>
+                <h2>💻 Bringing Your Arm to Life! (Web Control Interface)</h2>
+                <p>The 4-DOF Robotic Arm comes with an advanced web-based control interface that allows precise control over each joint. The system consists of two main components:</p>
+                
+                <div class="tip">
+                    <h4>Web Controller Features:</h4>
+                    <ul>
+                        <li><b>Real-time Servo Control:</b> Adjust each joint's position using intuitive sliders (0-180 degrees)</li>
+                        <li><b>Position Memory:</b> Automatically saves and restores last-used positions</li>
+                        <li><b>Preset Positions:</b> Quick access to common configurations (Home, Rest, Pickup)</li>
+                        <li><b>Range Limits:</b> Set safe operating ranges for each servo to prevent mechanical stress</li>
+                        <li><b>Serial Monitor:</b> Real-time feedback and debugging information</li>
+                    </ul>
+                </div>
+
+                <h3>🔌 Hardware Setup</h3>
+                <p>Before using the web controller, ensure you have:</p>
+                <ul>
+                    <li>Installed the <b>Adafruit PWM Servo Driver Library</b> in Arduino IDE (Sketch > Include Library > Manage Libraries...)</li>
+                    <li>Connected all servos to the correct PCA9685 channels (0-3)</li>
+                    <li>Connected the Arduino via USB (for serial communication)</li>
+                    <li>Applied external 5V power supply to the servo driver board</li>
+                </ul>
+
+                <h3>🎮 Using the Controller</h3>
+                <p>The web interface provides several ways to control your robotic arm:</p>
+                <ol>
+                    <li><b>Individual Joint Control:</b> Use sliders to precisely position each joint:
+                        <ul>
+                            <li>Base Rotation: Controls the arm's horizontal movement (Servo 1)</li>
+                            <li>Shoulder: Main up/down movement of the arm (Servo 2)</li>
+                            <li>Elbow: Secondary articulation point (Servo 3)</li>
+                            <li>Gripper: Controls the opening/closing of the claw (Servo 4)</li>
+                        </ul>
+                    </li>
+                    <li><b>Range Configuration:</b> Set minimum and maximum angles for each joint to:
+                        <ul>
+                            <li>Prevent mechanical collisions</li>
+                            <li>Optimize movement range for specific tasks</li>
+                            <li>Protect servos from overextension</li>
+                        </ul>
+                    </li>
+                    <li><b>Preset Positions:</b> Quick-access buttons for common positions:
+                        <ul>
+                            <li>Home: All servos at 90° (neutral position)</li>
+                            <li>Rest: Relaxed pose to minimize power consumption</li>
+                            <li>Pickup: Optimized position for grabbing objects</li>
+                        </ul>
+                    </li>
+                </ol>
+                <h3>🌐 Web Communication</h3>
+                <p>The controller uses modern web technologies to communicate with your robotic arm:</p>
+                
+                <div class="technical-details">
+                    <h4>Communication Flow:</h4>
+                    <ol>
+                        <li><b>Web Serial API:</b> 
+                            <ul>
+                                <li>Establishes direct communication between browser and Arduino</li>
+                                <li>Operates at 115200 baud rate for responsive control</li>
+                                <li>Sends formatted commands for precise servo positioning</li>
+                            </ul>
+                        </li>
+                        <li><b>Command Protocol:</b>
+                            <ul>
+                                <li>Format: <code>SX:YYY</code> where:
+                                    <ul>
+                                        <li>X: Servo number (1-4)</li>
+                                        <li>YYY: Target angle (000-180)</li>
+                                    </ul>
+                                </li>
+                                <li>Example: <code>S1:090</code> sets servo 1 to 90 degrees</li>
+                            </ul>
+                        </li>
+                        <li><b>Data Storage:</b>
+                            <ul>
+                                <li>Browser's LocalStorage preserves settings between sessions</li>
+                                <li>Saves servo positions and range limits</li>
+                                <li>Auto-restores last known good configuration</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+
+                <h3>🛠 Troubleshooting Controller Issues</h3>
+                <p>If you encounter issues with the web controller:</p>
+                <ol>
+                    <li><b>No Serial Connection:</b>
+                        <ul>
+                            <li>Check if Arduino is properly connected via USB</li>
+                            <li>Ensure correct COM port is selected</li>
+                            <li>Try refreshing the page and reconnecting</li>
+                        </ul>
+                    </li>
+                    <li><b>Erratic Movement:</b>
+                        <ul>
+                            <li>Verify external power supply connection</li>
+                            <li>Check servo wire connections</li>
+                            <li>Adjust range limits if servos are binding</li>
+                        </ul>
+                    </li>
+                    <li><b>Unresponsive Controls:</b>
+                        <ul>
+                            <li>Clear browser cache and reload</li>
+                            <li>Check serial monitor for error messages</li>
+                            <li>Reset Arduino if needed</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <div class="tip">
+                    <p><b>Pro Tip:</b> Use the serial monitor in the controller to debug communication issues. The clear console button helps keep the log clean and focused on current operations.</p>
+                </div>
+
                 <div class="code-block">
 <pre>#include &lt;Wire.h&gt; // Required for I2C communication with PCA9685
 #include &lt;Adafruit_PWMServoDriver.h&gt; // Library to control the PCA9685 board

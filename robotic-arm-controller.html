@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>4-DOF Robotic Arm Controller</title>
+  <style>
+    :root {
+      --primary: #3498db;
+      --secondary: #2ecc71;
+      --accent: #e74c3c;
+      --background: #1a1a2e;
+      --card: #16213e;
+      --text: #e9ecef;
+      --border: #30475e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { 
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 60fr 40fr;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .log-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 15px;
+      height: calc(100vh - 40px);
+      position: sticky;
+      top: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .clear-console {
+      margin-top: 10px;
+      background: var(--accent);
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+    }
+    
+    .clear-console:hover {
+      opacity: 1;
+    }
+
+    .connection-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    .servo-controls {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    .servo { 
+      margin-bottom: 25px;
+      padding: 15px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .servo:hover {
+      transform: translateX(10px);
+    }
+
+    .servo label { 
+      font-weight: bold;
+      display: block;
+      margin-bottom: 10px;
+      color: var(--secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slider { 
+      width: 100%;
+      height: 20px;
+      -webkit-appearance: none;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      outline: none;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .slider:hover {
+      opacity: 1;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      background: var(--primary);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .limits { 
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .limits input {
+      width: 70px;
+      padding: 5px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+
+    #log { 
+      height: calc(100% - 30px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      color: #00ff00;
+      font-family: monospace;
+      overflow: auto;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+
+    button { 
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #connectBtn {
+      background: var(--secondary);
+    }
+
+    #disconnectBtn {
+      background: var(--accent);
+    }
+
+    .preset-btn {
+      background: var(--primary);
+    }
+
+    #status {
+      margin-left: 10px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .status-connected {
+      color: var(--secondary);
+    }
+
+    .status-disconnected {
+      color: var(--accent);
+    }
+
+    /* Robot arm decoration */
+    .robot-decoration {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 200px;
+      height: 200px;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.3;
+    }
+
+    .robot-arm {
+      stroke: var(--secondary);
+      stroke-width: 4;
+      fill: none;
+      stroke-linecap: round;
+      animation: armMove 4s ease-in-out infinite;
+    }
+
+    @keyframes armMove {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(30deg); }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .connection-panel {
+      animation: pulse 2s infinite;
+    }
+
+    /* Circuit board pattern background */
+    .circuit-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        linear-gradient(90deg, var(--background) 21px, transparent 1%) center,
+        linear-gradient(var(--background) 21px, transparent 1%) center,
+        rgba(52, 152, 219, 0.1);
+      background-size: 22px 22px;
+      z-index: -2;
+    }
+
+    h2 {
+      color: var(--secondary);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <!-- Circuit board pattern background -->
+  <div class="circuit-pattern"></div>
+
+  <!-- Robot arm decoration -->
+  <svg class="robot-decoration">
+    <g class="robot-arm">
+      <path d="M20,180 L60,140 L100,160 L140,120 L180,140" />
+      <circle cx="60" cy="140" r="5" />
+      <circle cx="100" cy="160" r="5" />
+      <circle cx="140" cy="120" r="5" />
+      <path d="M180,140 L190,130 L200,140 L190,150 Z" />
+    </g>
+  </svg>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <!-- Connection panel -->
+    <div class="connection-panel">
+      <h2>4-DOF Robotic Arm Control</h2>
+      <button id="connectBtn">🔌 Connect</button>
+      <button id="disconnectBtn" disabled>⏏️ Disconnect</button>
+      <span id="status">Not connected</span>
+    </div>
+
+    <!-- Preset positions -->
+    <div class="servo-controls">
+      <h2>Preset Positions</h2>
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="preset-btn" onclick="setPreset('home')">🏠 Home</button>
+        <button class="preset-btn" onclick="setPreset('rest')">💤 Rest</button>
+        <button class="preset-btn" onclick="setPreset('pickup')">🤖 Pickup</button>
+      </div>
+    </div>
+
+    <!-- Servo controls -->
+    <div class="servo-controls">
+      <h2>Joint Controls</h2>
+      <div id="servos"></div>
+    </div>
+  </div>
+
+  <!-- Log panel -->
+  <div class="log-panel">
+    <h2>Serial Monitor</h2>
+    <div id="log"></div>
+    <button class="clear-console" onclick="clearLog()">🗑️ Clear Console</button>
+  </div>
+
+<script>
+const servoCount = 4;
+let port, writer, reader;
+let limits = []; // [{min:0,max:180}, ...]
+let values = [90,90,90,90];
+
+const jointNames = [
+  "Base Rotation",
+  "Shoulder",
+  "Elbow",
+  "Gripper"
+];
+
+const presetPositions = {
+  home: [90, 90, 90, 90],
+  rest: [90, 45, 45, 90],
+  pickup: [90, 120, 150, 180]
+};
+
+const logDiv = document.getElementById('log');
+const servosDiv = document.getElementById('servos');
+const statusSpan = document.getElementById('status');
+
+function log(msg) {
+  const t = new Date().toLocaleTimeString();
+  logDiv.innerHTML = `[${t}] ${msg}<br>` + logDiv.innerHTML;
+  if (logDiv.innerHTML.length > 5000) {
+    logDiv.innerHTML = logDiv.innerHTML.substring(0, 5000);
+  }
+}
+
+function setStatus(s, isConnected = false) {
+  statusSpan.textContent = s;
+  statusSpan.className = isConnected ? 'status-connected' : 'status-disconnected';
+}
+
+// Build servo controls
+for (let i=0; i<servoCount; i++) {
+  const div = document.createElement('div');
+  div.className = "servo";
+  div.innerHTML = `
+    <label>
+      <span>${jointNames[i]}</span>
+      <span id="val${i}">${values[i]}°</span>
+    </label>
+    <input type="range" id="slider${i}" class="slider" min="0" max="180" value="${values[i]}"/>
+    <div class="limits">
+      <input type="number" id="min${i}" value="0" min="0" max="180"/>
+      <input type="number" id="max${i}" value="180" min="0" max="180"/>
+    </div>
+  `;
+  servosDiv.appendChild(div);
+  limits[i] = {min:0,max:180};
+}
+
+// Restore from localStorage
+if (localStorage.servoLimits) limits = JSON.parse(localStorage.servoLimits);
+if (localStorage.servoValues) values = JSON.parse(localStorage.servoValues);
+
+for (let i=0; i<servoCount; i++) {
+  document.getElementById(`slider${i}`).value = values[i];
+  document.getElementById(`val${i}`).textContent = values[i] + '°';
+  document.getElementById(`min${i}`).value = limits[i].min;
+  document.getElementById(`max${i}`).value = limits[i].max;
+  document.getElementById(`slider${i}`).min = limits[i].min;
+  document.getElementById(`slider${i}`).max = limits[i].max;
+}
+
+function updateLimit(idx) {
+  const minVal = parseInt(document.getElementById(`min${idx}`).value);
+  const maxVal = parseInt(document.getElementById(`max${idx}`).value);
+  limits[idx] = {min:minVal,max:maxVal};
+  const slider = document.getElementById(`slider${idx}`);
+  slider.min = minVal;
+  slider.max = maxVal;
+  localStorage.servoLimits = JSON.stringify(limits);
+}
+
+function updateServo(idx, val, skipStorage = false) {
+  values[idx] = parseInt(val);
+  document.getElementById(`val${idx}`).textContent = values[idx] + '°';
+  if (!skipStorage) {
+    localStorage.servoValues = JSON.stringify(values);
+  }
+  sendOnce(`S${idx+1}:${values[idx]}\n`);
+}
+
+// Set preset positions
+function setPreset(preset) {
+  if (presetPositions[preset]) {
+    presetPositions[preset].forEach((val, idx) => {
+      const slider = document.getElementById(`slider${idx}`);
+      slider.value = val;
+      updateServo(idx, val, true);
+    });
+    log(`🎯 Set to ${preset} position`);
+  }
+}
+
+for (let i=0; i<servoCount; i++) {
+  document.getElementById(`slider${i}`).addEventListener('input', e => {
+    updateServo(i, e.target.value);
+  });
+  document.getElementById(`min${i}`).addEventListener('change', () => updateLimit(i));
+  document.getElementById(`max${i}`).addEventListener('change', () => updateLimit(i));
+}
+
+// Serial connect/disconnect
+document.getElementById('connectBtn').addEventListener('click', async () => {
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({baudRate:9600});
+    writer = port.writable.getWriter();
+    const td = new TextDecoderStream();
+    port.readable.pipeTo(td.writable);
+    reader = td.readable.getReader();
+    readLoop();
+    setStatus("Connected", true);
+    log("🔌 Connected to robotic arm");
+    document.getElementById('connectBtn').disabled = true;
+    document.getElementById('disconnectBtn').disabled = false;
+
+    // Send initial states
+    for (let i=0; i<servoCount; i++) {
+      sendOnce(`S${i+1}:${values[i]}\n`);
+    }
+  } catch(e) { 
+    log("❌ Connect error: " + e);
+    setStatus("Error", false);
+  }
+});
+
+document.getElementById('disconnectBtn').addEventListener('click', async () => {
+  if (reader) { await reader.cancel(); reader.releaseLock(); reader = null; }
+  if (writer) { writer.releaseLock(); writer = null; }
+  if (port) { await port.close(); port = null; }
+  setStatus("Not connected", false);
+  document.getElementById('connectBtn').disabled = false;
+  document.getElementById('disconnectBtn').disabled = true;
+  log("🔌 Disconnected from robotic arm");
+});
+
+async function sendOnce(msg) {
+  if (!writer) return;
+  await writer.write(new TextEncoder().encode(msg));
+}
+
+async function readLoop() {
+  while (true) {
+    const {value,done} = await reader.read();
+    if (done) break;
+    if (value) {
+      value.split(/\r?\n/).forEach(line => {
+        if(line) log("📡 Arduino: " + line);
+      });
+    }
+  }
+}
+
+function clearLog() {
+  logDiv.innerHTML = "";
+  log("🧹 Console cleared");
+}
+</script>
+</body>
+</html>
