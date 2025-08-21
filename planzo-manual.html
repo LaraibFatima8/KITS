@@ -160,9 +160,9 @@
                     <img src="planzo_pngs/gesture sensor.png" alt="Gesture sensor" style="width: 100%; height: auto; object-fit: contain;">
                     <img src="planzo_pngs/oled.png" alt="OLED display" style="width: 100%; height: auto; object-fit: contain;">
                     <img src="planzo_pngs/wires.png" alt="Connecting wires" style="width: 100%; height: auto; object-fit: contain;">
-                    <div style="grid-column: 3; display: flex; align-items: center; justify-content: center; background: #f3e8ff; border: 2px dashed #8B5CF6; border-radius: 8px; padding: 20px;">
-                        <span style="color: #8B5CF6; font-weight: bold; text-align: center;">More components<br>included in kit</span>
-                    </div>
+                    <img src="planzo_pngs/buzzer.png" alt="Piezo buzzer" style="width: 100%; height: auto; object-fit: contain;">
+                    <img src="planzo_pngs/ESPC3.png" alt="ESP32-C3 microcontroller" style="width: 100%; height: auto; object-fit: contain;">
+                    <img src="planzo_pngs/case.png" alt="Protective case" style="width: 100%; height: auto; object-fit: contain;">
                 </div>
                 <table class="parts-table">
                     <thead>
@@ -192,23 +192,23 @@
 
                 <h3>Step 1: Prepare the Case</h3>
                 <p><b>Instruction:</b> Remove the 3D printed parts from the kit. Clean any support material and test-fit the pieces together.</p>
-                <img src="images/kit-planzo.png" alt="3D printed case parts laid out" class="step-image">
+                <img src="planzo_pngs/prepare-case.png" alt="3D printed case parts laid out" class="step-image">
 
                 <h3>Step 2: Mount the ESP32</h3>
                 <p><b>Instruction:</b> Place the ESP32 board in its designated slot in the bottom case. Secure with 4 small screws.</p>
-                <img src="images/kit-planzo.png" alt="ESP32 mounting process" class="step-image">
+                <img src="planzo_pngs/ESP-ON-BREADBOARD.png" alt="ESP32 mounting process" class="step-image">
 
                 <h3>Step 3: Install the OLED Display</h3>
                 <p><b>Instruction:</b> Carefully insert the OLED display into the front panel mount. Secure with mounting tape.</p>
-                <img src="images/kit-planzo.png" alt="OLED display installation" class="step-image">
+                <img src="planzo_pngs/install-oled.png" alt="OLED display installation" class="step-image">
 
                 <h3>Step 4: Add the Gesture Sensor</h3>
                 <p><b>Instruction:</b> Mount the APDS-9960 gesture sensor in the top slot, ensuring it's oriented correctly.</p>
-                <img src="images/kit-planzo.png" alt="Gesture sensor installation" class="step-image">
+                <img src="planzo_pngs/install-sensor.png" alt="Gesture sensor installation" class="step-image">
 
-                <h3>Step 5: Install LED Strip</h3>
-                <p><b>Instruction:</b> Carefully attach the LED strip along the inner perimeter of the case using the adhesive backing.</p>
-                <img src="images/kit-planzo.png" alt="LED strip installation" class="step-image">
+                <h3>Step 5: Install ESP32 and Breadboard</h3>
+                <p><b>Instruction:</b> Place the ESP32 onto the breadboard ensuring proper pin alignment. Connect the breadboard to the main assembly using the provided mounting brackets.</p>
+                <img src="planzo_pngs/install-breadboard.png" alt="ESP32 and breadboard installation" class="step-image">
             </div>
             
             <div class="section">
@@ -223,6 +223,23 @@
                         <li><b>LED Strip:</b> Connect to GPIO16 for data</li>
                         <li><b>Buzzer:</b> Connect to GPIO17</li>
                         <li><b>Battery Pack:</b> Connect to 5V and GND</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Install Case Covering</h2>
+                <p>Once all components are wired and secured, it's time to close the case:</p>
+                <h3>Final Assembly Step</h3>
+                <p><b>Instruction:</b> Carefully align the top cover with the base, ensuring no wires are pinched. Press down gently until all clips engage securely.</p>
+                <img src="planzo_pngs/close-cover.png" alt="Closing the protective case" class="step-image">
+                <div class="tip">
+                    <h4>Important Notes:</h4>
+                    <ul>
+                        <li>Make sure all components are properly seated before closing</li>
+                        <li>Check that wires are not blocking the cover from closing completely</li>
+                        <li>Ensure the gesture sensor and OLED display are accessible through their respective openings</li>
+                        <li>Test all connections before final closure</li>
                     </ul>
                 </div>
             </div>

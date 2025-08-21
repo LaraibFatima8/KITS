@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLanzo Bonus Experiments - Advanced Gesture Control</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            padding: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.3); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.5); }
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .experiment-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideInUp 0.6s ease-out forwards;
+            position: relative;
+        }
+        
+        .experiment-card:nth-child(even) {
+            animation-delay: 0.2s;
+        }
+        
+        .experiment-card:nth-child(odd) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes slideInUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .experiment-header {
+            background: linear-gradient(45deg, #8B5CF6, #A78BFA);
+            color: white;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .experiment-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -50px;
+            width: 100px;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: skewX(-20deg);
+            animation: slideRight 4s ease-in-out infinite;
+        }
+        
+        @keyframes slideRight {
+            0%, 100% { transform: translateX(-200px) skewX(-20deg); }
+            50% { transform: translateX(0) skewX(-20deg); }
+        }
+        
+        .experiment-number {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            font-weight: bold;
+            margin-right: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .experiment-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: inline;
+        }
+        
+        .experiment-content {
+            padding: 30px;
+        }
+        
+        .difficulty {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-3px); }
+        }
+        
+        .difficulty.beginner { background: #DEF7EC; color: #03543F; }
+        .difficulty.intermediate { background: #FEF3C7; color: #92400E; }
+        .difficulty.advanced { background: #FDE2E8; color: #9B1C1C; }
+        
+        .gesture-demo {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .gesture-icon {
+            font-size: 3rem;
+            margin: 10px;
+            animation: gestureAnimation 2s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        @keyframes gestureAnimation {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+        
+        .code-snippet {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #f8f8f2;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .code-snippet::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #8B5CF6, transparent);
+            animation: codeScan 3s linear infinite;
+        }
+        
+        @keyframes codeScan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .wiring-diagram {
+            background: white;
+            border: 2px dashed #8B5CF6;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .connection-line {
+            height: 2px;
+            background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+            margin: 10px 0;
+            border-radius: 1px;
+            animation: dataFlow 2s linear infinite;
+        }
+        
+        @keyframes dataFlow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        
+        .tip-box {
+            background: linear-gradient(135deg, #e6f7ff, #f0f9ff);
+            border-left: 5px solid #1890ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+            position: relative;
+        }
+        
+        .tip-box::before {
+            content: '💡';
+            position: absolute;
+            top: 15px;
+            left: -15px;
+            background: #1890ff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            animation: tipGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes tipGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(24, 144, 255, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(24, 144, 255, 0.6); }
+        }
+        
+        .sensor-visual {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            position: relative;
+            border: 3px solid #8B5CF6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+        }
+        
+        .sensor-wave {
+            position: absolute;
+            border: 2px solid #8B5CF6;
+            border-radius: 50%;
+            animation: sensorWave 2s linear infinite;
+        }
+        
+        .sensor-wave:nth-child(1) { width: 60px; height: 60px; }
+        .sensor-wave:nth-child(2) { width: 100px; height: 100px; animation-delay: 0.5s; }
+        .sensor-wave:nth-child(3) { width: 140px; height: 140px; animation-delay: 1s; }
+        
+        @keyframes sensorWave {
+            0% { opacity: 1; transform: scale(0.5); }
+            100% { opacity: 0; transform: scale(1.2); }
+        }
+        
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #8B5CF6;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .back-link:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .floating-gesture {
+            position: fixed;
+            font-size: 2rem;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        .floating-gesture:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .floating-gesture:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
+        .floating-gesture:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 2s; }
+        .floating-gesture:nth-child(4) { bottom: 10%; right: 10%; animation-delay: 3s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-gesture">👆</div>
+    <div class="floating-gesture">👇</div>
+    <div class="floating-gesture">👈</div>
+    <div class="floating-gesture">👉</div>
+    
+    <a href="index.html" class="back-link">← Back to Kits</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚀 PLanzo Bonus Experiments</h1>
+            <p>Advanced Gesture Control & Creative Applications</p>
+        </div>
+
+        <!-- Experiment 1: Gesture Music Controller -->
+        <div class="experiment-card">
+            <div class="experiment-header">
+                <span class="experiment-number">1</span>
+                <h2 class="experiment-title">Gesture Music Controller</h2>
+            </div>
+            <div class="experiment-content">
+                <span class="difficulty intermediate">Intermediate</span>
+                <p>Transform your PLanzo into a wireless music controller! Control volume, skip tracks, and play/pause music using intuitive hand gestures.</p>
+                
+                <div class="gesture-demo">
+                    <div class="gesture-icon">👆</div>
+                    <div class="gesture-icon">👇</div>
+                    <div class="gesture-icon">👈</div>
+                    <div class="gesture-icon">👉</div>
+                    <p><strong>Gestures:</strong> Up/Down = Volume, Left/Right = Track Skip</p>
+                </div>
+
+                <div class="code-snippet">
+<pre>// Music Controller Code
+void handleMusicGestures() {
+  uint8_t gesture = apds.readGesture();
+  
+  switch(gesture) {
+    case APDS9960_UP:
+      volumeUp();
+      showOLED("♪ Volume UP");
+      break;
+    case APDS9960_DOWN:
+      volumeDown();
+      showOLED("♪ Volume DOWN");
+      break;
+    case APDS9960_LEFT:
+      previousTrack();
+      showOLED("⏮ Previous");
+      break;
+    case APDS9960_RIGHT:
+      nextTrack();
+      showOLED("⏭ Next");
+      break;
+  }
+}</pre>
+                </div>
+
+                <div class="tip-box">
+                    <h4>Pro Tip:</h4>
+                    <p>Connect your PLanzo to Spotify using their Web API for real-time music control. You can even display the current song name on the OLED!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiment 2: Smart Home Controller -->
+        <div class="experiment-card">
+            <div class="experiment-header">
+                <span class="experiment-number">2</span>
+                <h2 class="experiment-title">Smart Home Hub</h2>
+            </div>
+            <div class="experiment-content">
+                <span class="difficulty advanced">Advanced</span>
+                <p>Control your entire smart home with gestures! Turn lights on/off, adjust thermostat, and control smart devices from anywhere in your house.</p>
+                
+                <div class="sensor-visual">
+                    <div class="sensor-wave"></div>
+                    <div class="sensor-wave"></div>
+                    <div class="sensor-wave"></div>
+                    <span style="font-size: 2rem;">🏠</span>
+                </div>
+
+                <div class="wiring-diagram">
+                    <p><strong>Additional Components Needed:</strong></p>
+                    <div class="connection-line"></div>
+                    <p>• WiFi Module (Built into ESP32) ✓</p>
+                    <p>• Smart Bulbs (Philips Hue, LIFX, etc.)</p>
+                    <p>• Smart Plugs</p>
+                    <div class="connection-line"></div>
+                </div>
+
+                <div class="code-snippet">
+<pre>// Smart Home Control
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+void controlSmartHome(uint8_t gesture) {
+  switch(gesture) {
+    case APDS9960_UP:
+      sendCommand("lights/on");
+      showOLED("💡 Lights ON");
+      break;
+    case APDS9960_DOWN:
+      sendCommand("lights/off");
+      showOLED("💡 Lights OFF");
+      break;
+    case APDS9960_LEFT:
+      sendCommand("temp/decrease");
+      showOLED("🌡️ Temp -");
+      break;
+    case APDS9960_RIGHT:
+      sendCommand("temp/increase");
+      showOLED("🌡️ Temp +");
+      break;
+  }
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiment 3: Gesture Presentation Controller -->
+        <div class="experiment-card">
+            <div class="experiment-header">
+                <span class="experiment-number">3</span>
+                <h2 class="experiment-title">Wireless Presentation Remote</h2>
+            </div>
+            <div class="experiment-content">
+                <span class="difficulty beginner">Beginner</span>
+                <p>Never fumble with presentation clickers again! Control PowerPoint, Google Slides, or any presentation software with simple hand gestures.</p>
+                
+                <div class="gesture-demo">
+                    <div style="display: flex; justify-content: space-around; align-items: center;">
+                        <div>
+                            <div class="gesture-icon">👈</div>
+                            <p>Previous Slide</p>
+                        </div>
+                        <div>
+                            <div class="gesture-icon">👉</div>
+                            <p>Next Slide</p>
+                        </div>
+                        <div>
+                            <div class="gesture-icon">👆</div>
+                            <p>Start/Stop</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <h4>Usage Ideas:</h4>
+                    <ul>
+                        <li>School presentations - Stand confidently without wires!</li>
+                        <li>Business meetings - Professional wireless control</li>
+                        <li>Teaching - Move around the classroom freely</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiment 4: Gesture Gaming Controller -->
+        <div class="experiment-card">
+            <div class="experiment-header">
+                <span class="experiment-number">4</span>
+                <h2 class="experiment-title">Motion Gaming Interface</h2>
+            </div>
+            <div class="experiment-content">
+                <span class="difficulty intermediate">Intermediate</span>
+                <p>Create your own motion-controlled games! Build simple games that respond to your hand movements, or control existing games with gesture inputs.</p>
+                
+                <div class="code-snippet">
+<pre>// Simple Gesture Game: Space Invaders
+void gestureGame() {
+  uint8_t gesture = apds.readGesture();
+  
+  switch(gesture) {
+    case APDS9960_LEFT:
+      movePlayerLeft();
+      break;
+    case APDS9960_RIGHT:
+      movePlayerRight();
+      break;
+    case APDS9960_UP:
+      fireWeapon();
+      showOLED("🚀 PEW PEW!");
+      break;
+    case APDS9960_DOWN:
+      activateShield();
+      break;
+  }
+  
+  updateGame();
+  drawOnOLED();
+}</pre>
+                </div>
+
+                <div class="gesture-demo">
+                    <p><strong>Game Ideas:</strong></p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                        <div>🎮 Gesture Pong</div>
+                        <div>🚀 Space Invaders</div>
+                        <div>🐍 Snake Game</div>
+                        <div>🎯 Target Practice</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiment 5: Productivity Tracker -->
+        <div class="experiment-card">
+            <div class="experiment-header">
+                <span class="experiment-number">5</span>
+                <h2 class="experiment-title">Advanced Productivity Tracker</h2>
+            </div>
+            <div class="experiment-content">
+                <span class="difficulty advanced">Advanced</span>
+                <p>Take your PLanzo to the next level with advanced productivity tracking. Monitor work sessions, break times, and create detailed analytics of your day.</p>
+                
+                <div class="wiring-diagram">
+                    <p><strong>Enhanced Features:</strong></p>
+                    <div class="connection-line"></div>
+                    <p>📊 Real-time Productivity Graphs</p>
+                    <p>⏰ Smart Break Reminders</p>
+                    <p>📱 Mobile App Integration</p>
+                    <p>☁️ Cloud Data Sync</p>
+                    <div class="connection-line"></div>
+                </div>
+
+                <div class="code-snippet">
+<pre>// Productivity Analytics
+void trackProductivity() {
+  static unsigned long sessionStart = 0;
+  static int pomodoroCount = 0;
+  
+  uint8_t gesture = apds.readGesture();
+  
+  if(gesture == APDS9960_UP && sessionStart == 0) {
+    sessionStart = millis();
+    showOLED("🎯 Focus Started");
+    logActivity("FOCUS_START");
+  }
+  
+  if(gesture == APDS9960_DOWN && sessionStart > 0) {
+    unsigned long sessionTime = millis() - sessionStart;
+    pomodoroCount++;
+    showOLED("✅ Session " + String(pomodoroCount));
+    saveToCloud(sessionTime, pomodoroCount);
+    sessionStart = 0;
+  }
+}</pre>
+                </div>
+
+                <div class="tip-box">
+                    <h4>Analytics You Can Track:</h4>
+                    <ul>
+                        <li>Daily focus hours and patterns</li>
+                        <li>Most productive times of day</li>
+                        <li>Break frequency optimization</li>
+                        <li>Weekly/monthly productivity trends</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experiment 6: Gesture Art Creator -->
+        <div class="experiment-card">
+            <div class="experiment-header">
+                <span class="experiment-number">6</span>
+                <h2 class="experiment-title">Digital Art Canvas</h2>
+            </div>
+            <div class="experiment-content">
+                <span class="difficulty intermediate">Intermediate</span>
+                <p>Turn your PLanzo into a digital art tool! Draw patterns, create animations, and generate art based on your hand movements.</p>
+                
+                <div class="gesture-demo">
+                    <div style="text-align: center;">
+                        <div class="gesture-icon">🎨</div>
+                        <p>Gesture → Art!</p>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px;">
+                            <div>👆 = Line Up</div>
+                            <div>👇 = Line Down</div>
+                            <div>👈 = Line Left</div>
+                            <div>👉 = Line Right</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-snippet">
+<pre>// Gesture Art Generator
+void createArt() {
+  uint8_t gesture = apds.readGesture();
+  static int x = 64, y = 32; // Center of OLED
+  
+  display.clearDisplay();
+  
+  switch(gesture) {
+    case APDS9960_UP:
+      drawLine(x, y, x, y-10);
+      y -= 10;
+      break;
+    case APDS9960_DOWN:
+      drawLine(x, y, x, y+10);
+      y += 10;
+      break;
+    case APDS9960_LEFT:
+      drawLine(x, y, x-10, y);
+      x -= 10;
+      break;
+    case APDS9960_RIGHT:
+      drawLine(x, y, x+10, y);
+      x += 10;
+      break;
+  }
+  
+  display.display();
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 40px; color: white;">
+            <h2>Ready to Start Experimenting? 🚀</h2>
+            <p style="font-size: 1.2rem; opacity: 0.9; margin-top: 10px;">
+                These are just the beginning! The APDS-9960 sensor opens up endless possibilities. 
+                What will you create next?
+            </p>
+            <div style="margin-top: 30px;">
+                <a href="planzo-manual.html" style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 25px; text-decoration: none; color: white; font-weight: 600; margin: 0 10px; transition: all 0.3s ease;">
+                    📖 Back to Manual
+                </a>
+                <a href="planzo-controller.html" style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 25px; text-decoration: none; color: white; font-weight: 600; margin: 0 10px; transition: all 0.3s ease;">
+                    🎮 Try Controller
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

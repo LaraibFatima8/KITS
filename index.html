@@ -1882,15 +1882,16 @@
         manual: 'planzo-manual.html',
         controller: 'planzo-controller.html',
         extras: 'manuals/planzo-extras.pdf',
+        bonusExperiments: 'planzo-bonus-experiments.html',
         level: 'intermediate',
         tags: ['automation', 'sensors', 'coding', 'esp32'],
         steps: [
-          'ESP32 Web Interface Setup',
-          'WiFi Configuration',
-          'Real-time WebSocket Control',
-          'Timer & Alert System',
-          'Mobile-friendly Dashboard',
-          'Multi-device Synchronization'
+          'Smart Task Organization System',
+          'Gesture-Based Time Control',
+          'Customizable Timer Settings', 
+          'Web Controller Dashboard',
+          'Task Priority Management',
+          'Productivity Analytics & Tracking'
         ]
       },
       {
@@ -1997,19 +1998,34 @@
     const openExtras = document.getElementById('openExtras');
     const modalClose = document.getElementById('modalClose');
 
+    let currentKit = null;
+
     function openModal(kit){
+      currentKit = kit; // Store current kit reference
       modalTitle.textContent = kit.title;
       modalImg.src = kit.img;
       modalImg.alt = kit.title;
       modalSteps.innerHTML = kit.steps.map(s => `<li>${s}</li>`).join('');
       modalTags.innerHTML = `<span class='tag'>${kit.level}</span>` + kit.tags.map(t => `<span class='tag'>${t}</span>`).join('');
       openManual.href = kit.manual;
-      openExtras.href = kit.extras;
       
-      // Show controller button only for 4WD car
+      // Handle different bonus experiments/extras based on kit
+      if (kit.bonusExperiments) {
+        openExtras.href = kit.bonusExperiments;
+        openExtras.innerHTML = '🚀 Bonus Experiments';
+      } else {
+        openExtras.href = kit.extras;
+        openExtras.innerHTML = '🧪 Bonus Experiments';
+      }
+      
+      // Show controller button for 4WD car and PLanzo
       const openController = document.getElementById('openController');
       if (kit.id === '4wd-car') {
         openController.style.display = 'inline-flex';
+        openController.innerHTML = '🔌 Connect to Car';
+      } else if (kit.id === 'planzo') {
+        openController.style.display = 'inline-flex';
+        openController.innerHTML = '🎮 Web Controller';
       } else {
         openController.style.display = 'none';
       }
@@ -2030,7 +2046,11 @@
 
     openController.addEventListener('click', () => {
       modal.classList.remove('open');
-      window.open('car-controller-local.html', '_blank');
+      if (currentKit && currentKit.id === '4wd-car') {
+        window.open('car-controller-local.html', '_blank');
+      } else if (currentKit && currentKit.id === 'planzo') {
+        window.open('planzo-controller.html', '_blank');
+      }
     });
 
     ipModalClose.addEventListener('click', () => {
